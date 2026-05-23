@@ -2,6 +2,14 @@
 
 本项目选择首期议题二：开发一个工具，让用户通过输入文本或简单参数，高效、低成本地生成 2D 游戏素材，并能融入主流 2D 游戏开发流程。
 
+## 开源信息
+
+- 仓库地址：[https://github.com/yuanlecheng/qiniu-pixel-asset-forge](https://github.com/yuanlecheng/qiniu-pixel-asset-forge)
+- 开源协议：[MIT License](./LICENSE)
+- 贡献指南：[CONTRIBUTING.md](./CONTRIBUTING.md)
+- 复现指南：[docs/REPRODUCIBILITY.md](./docs/REPRODUCIBILITY.md)
+- CI 检查：GitHub Actions 会在 push 和 pull request 时执行 `node --check app.js` 并检查关键文件是否存在。
+
 ## 项目定位
 
 Pixel Asset Forge 是一个零依赖、浏览器端运行的 2D 像素素材生成 MVP。它面向 Game Jam、独立游戏原型和课程作业场景，帮助开发者快速得到风格一致的角色、道具、地块与 UI 图标素材，并导出 PNG、四帧精灵表和工具链元数据。
@@ -31,10 +39,17 @@ Demo 视频链接：待录制后补充
 
 ## 运行方式
 
+从 GitHub 克隆：
+
+```bash
+git clone https://github.com/yuanlecheng/qiniu-pixel-asset-forge.git
+cd qiniu-pixel-asset-forge
+```
+
 直接用浏览器打开：
 
 ```text
-D:\七牛云训练营\index.html
+index.html
 ```
 
 也可以用任意静态服务器托管本目录，例如：
@@ -60,9 +75,15 @@ python -m http.server 4173
 ├── styles.css
 ├── app.js
 ├── README.md
+├── LICENSE
+├── CONTRIBUTING.md
 ├── SUBMISSION_CHECKLIST.md
+├── docs/
+│   └── REPRODUCIBILITY.md
 ├── .github/
-│   └── PULL_REQUEST_TEMPLATE.md
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── workflows/
+│       └── ci.yml
 └── .gitignore
 ```
 
@@ -70,8 +91,15 @@ python -m http.server 4173
 
 - 运行时依赖：无。项目使用原生 HTML、CSS、JavaScript 和浏览器 Canvas API。
 - 构建依赖：无。无需安装 npm 包或启动构建工具。
+- CI 依赖：GitHub Actions 使用 `actions/checkout`、`actions/setup-node` 和 Node.js 20 做语法检查，不影响本地运行。
 - 原创功能：提示词解析、像素素材程序化生成、动作帧生成、调色板锁定、导出元数据和工具链导入建议均在本仓库实现。
 - 如后续接入第三方 API、模型、素材或历史代码，需要在 PR 描述和 README 中补充来源与用途。
+
+## 可复现性
+
+- 生成逻辑是确定性的：同一提示词、素材类型、动作、风格、调色板和 seed 偏移会生成同一结果。
+- 当前版本不依赖外部服务，断网环境也能运行。
+- 详细复现步骤见 [docs/REPRODUCIBILITY.md](./docs/REPRODUCIBILITY.md)。
 
 ## 议题适配说明
 

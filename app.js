@@ -22,6 +22,7 @@ const motionCanvases = [...document.querySelectorAll(".motion")];
 const state = {
   seedOffset: 0,
   lastMeta: {},
+  library: [],
 };
 
 const palettes = {
@@ -421,6 +422,92 @@ function makeMetadata(options, seed, palette) {
   };
 }
 
+function makeLibraryManifest() {
+  return {
+    project: "Pixel Asset Forge",
+    generatedAt: new Date().toISOString(),
+    assetCount: state.library.length,
+    assets: state.library.map((asset, index) => ({
+      index: index + 1,
+      id: asset.id,
+      name: asset.meta.name,
+      type: asset.meta.type,
+      action: asset.meta.action,
+      style: asset.meta.style,
+      size: asset.meta.size,
+      seed: asset.meta.seed,
+      prompt: asset.meta.prompt,
+      promptTags: asset.meta.promptTags,
+      palette: asset.meta.palette,
+      suggestedFilename: `${asset.meta.name}.png`,
+      importSettings: asset.meta.importSettings,
+    })),
+  };
+}
+
+function updateLibraryCount() {
+  const count = state.library.length;
+  $("#libraryCount").textContent = `${count} 个素材`;
+}
+
+function renderLibrary() {
+  const grid = $("#libraryGrid");
+  grid.replaceChildren();
+  updateLibraryCount();
+
+  if (state.library.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "保存满意的生成结果，形成可导出的项目素材清单。";
+    grid.append(empty);
+    return;
+  }
+
+  state.library.forEach((asset) => {
+    const card = document.createElement("article");
+    card.className = "library-card";
+
+    const image = document.createElement("img");
+    image.src = asset.preview;
+    image.alt = asset.meta.name;
+
+    const body = document.createElement("div");
+    body.className = "library-card-body";
+
+    const title = document.createElement("h4");
+    title.textContent = asset.meta.name;
+
+    const details = document.createElement("p");
+    details.textContent = `${asset.meta.type} / ${asset.meta.action} / ${asset.meta.size}`;
+
+    const tags = document.createElement("p");
+    tags.className = "library-tags";
+    tags.textContent = asset.meta.promptTags.join(", ");
+
+    const actions = document.createElement("div");
+    actions.className = "library-actions";
+
+    const downloadButton = document.createElement("button");
+    downloadButton.type = "button";
+    downloadButton.textContent = "PNG";
+    downloadButton.addEventListener("click", () => downloadDataUrl(asset.preview, `${asset.meta.name}.png`));
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "移除";
+    removeButton.addEventListener("click", () => {
+      state.library = state.library.filter((item) => item.id !== asset.id);
+      renderLibrary();
+      $("#statusText").textContent = "已移除";
+    });
+
+    actions.append(downloadButton, removeButton);
+    body.append(title, details, tags, actions);
+    card.append(image, body);
+    grid.append(card);
+  });
+}
+
 function renderAll() {
   const options = readOptions();
   const result = drawAssetToCanvas(mainCanvas, options, state.seedOffset, 0);
@@ -444,6 +531,13 @@ function downloadCanvas(canvas, filename) {
   const link = document.createElement("a");
   link.download = filename;
   link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function downloadDataUrl(dataUrl, filename) {
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = dataUrl;
   link.click();
 }
 
@@ -473,6 +567,50 @@ function exportMetadata() {
   $("#statusText").textContent = "JSON 已下载";
 }
 
+function downloadJson(data, filename) {
+  const text = JSON.stringify(data, null, 2);
+  const blob = new Blob([text], { type: "application/json" });
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function saveCurrentAsset() {
+  const existing = state.library.find((asset) => asset.meta.seed === state.lastMeta.seed);
+  if (existing) {
+    $("#statusText").textContent = "素材已在库中";
+    return;
+  }
+
+  state.library = [
+    {
+      id: `asset_${Date.now().toString(36)}_${state.library.length + 1}`,
+      preview: mainCanvas.toDataURL("image/png"),
+      meta: JSON.parse(JSON.stringify(state.lastMeta)),
+    },
+    ...state.library,
+  ].slice(0, 12);
+  renderLibrary();
+  $("#statusText").textContent = "已保存到素材库";
+}
+
+function exportLibraryManifest() {
+  if (state.library.length === 0) {
+    $("#statusText").textContent = "素材库为空";
+    return;
+  }
+  downloadJson(makeLibraryManifest(), "pixel_asset_forge_manifest.json");
+  $("#statusText").textContent = "素材清单已下载";
+}
+
+function clearLibrary() {
+  state.library = [];
+  renderLibrary();
+  $("#statusText").textContent = "素材库已清空";
+}
+
 async function copyMetadata() {
   const text = JSON.stringify(state.lastMeta, null, 2);
   try {
@@ -492,6 +630,9 @@ $("#downloadPngBtn").addEventListener("click", () => downloadCanvas(mainCanvas, 
 $("#downloadSheetBtn").addEventListener("click", downloadSpriteSheet);
 $("#downloadMetaBtn").addEventListener("click", exportMetadata);
 $("#copyMetaBtn").addEventListener("click", copyMetadata);
+$("#saveLibraryBtn").addEventListener("click", saveCurrentAsset);
+$("#downloadLibraryBtn").addEventListener("click", exportLibraryManifest);
+$("#clearLibraryBtn").addEventListener("click", clearLibrary);
 controls.stylePreset.addEventListener("change", () => {
   syncPaletteInputs();
   renderAll();
@@ -505,3 +646,4 @@ Object.entries(controls).forEach(([key, control]) => {
 
 syncPaletteInputs();
 renderAll();
+renderLibrary();

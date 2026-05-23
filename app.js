@@ -66,29 +66,51 @@ const keywordMap = [
   { tag: "ice", words: ["冰", "霜", "雪", "frost", "ice", "snow"], color: 1 },
   { tag: "fire", words: ["火", "炎", "lava", "fire"], color: 3 },
   { tag: "forest", words: ["森林", "草", "木", "leaf", "forest"], color: 2 },
+  { tag: "water", words: ["水", "海", "河", "water", "sea", "river"], color: 1, detail: "water" },
+  { tag: "sand", words: ["沙", "沙漠", "desert", "sand"], color: 3, detail: "sand" },
+  { tag: "wood", words: ["木头", "木板", "wood", "wooden", "plank"], color: 3, detail: "wood" },
+  { tag: "metal", words: ["金属", "铁", "钢", "银", "metal", "iron", "steel", "silver"], color: 5, detail: "metal" },
+  { tag: "poison", words: ["毒", "酸", "poison", "acid", "venom"], color: 2, detail: "toxic" },
+  { tag: "shadow", words: ["暗影", "黑暗", "shadow", "dark"], color: 0, detail: "shadow" },
   { tag: "stone", words: ["石", "石板", "岩", "stone", "rock", "slab"], detail: "stone" },
   { tag: "moss", words: ["苔藓", "青苔", "moss"], detail: "moss" },
   { tag: "crack", words: ["裂纹", "裂缝", "crack", "cracks"], detail: "crack" },
   { tag: "robot", words: ["机器人", "机械", "robot", "mech"], color: 1, detail: "visor" },
   { tag: "crystal", words: ["水晶", "宝石", "crystal", "gem"], shape: "crystal" },
   { tag: "rune", words: ["符文", "法阵", "魔法阵", "rune", "circle"], shape: "rune" },
-  { tag: "magic", words: ["法师", "魔法", "mage", "magic"], shape: "staff" },
+  { tag: "magic", words: ["法师", "巫师", "魔法", "mage", "wizard", "magic"], shape: "staff", detail: "caster" },
+  { tag: "healer", words: ["治疗", "牧师", "圣职", "healer", "priest", "cleric"], shape: "staff", detail: "healer" },
+  { tag: "rogue", words: ["刺客", "盗贼", "忍者", "assassin", "rogue", "ninja"], shape: "blade", detail: "scout" },
   { tag: "blade", words: ["剑", "刀", "sword", "blade"], shape: "blade" },
+  { tag: "axe", words: ["斧", "斧头", "axe"], shape: "axe" },
+  { tag: "spear", words: ["矛", "长枪", "spear", "lance"], shape: "spear" },
+  { tag: "hammer", words: ["锤", "战锤", "hammer", "mace"], shape: "hammer" },
   { tag: "shield", words: ["盾", "巨盾", "防御", "shield"], shape: "shield" },
   { tag: "warrior", words: ["战士", "骑士", "勇者", "warrior", "knight"], shape: "blade", detail: "warrior" },
   { tag: "potion", words: ["药", "瓶", "potion"], shape: "potion" },
   { tag: "key", words: ["钥匙", "key"], shape: "key" },
   { tag: "scroll", words: ["卷轴", "书卷", "scroll", "book"], shape: "scroll" },
+  { tag: "book", words: ["书", "魔导书", "tome", "spellbook"], shape: "book" },
+  { tag: "chest", words: ["宝箱", "箱子", "chest", "crate", "box"], shape: "chest" },
+  { tag: "ring", words: ["戒指", "指环", "ring"], shape: "ring" },
+  { tag: "bomb", words: ["炸弹", "bomb"], shape: "bomb" },
+  { tag: "arrow", words: ["箭", "arrow"], shape: "arrow" },
   { tag: "coin", words: ["金币", "钱", "coin"], shape: "coin" },
   { tag: "heart", words: ["血", "心", "health", "heart"], shape: "heart" },
   { tag: "cape", words: ["披风", "斗篷", "cape", "cloak"], detail: "cape" },
   { tag: "wing", words: ["翅膀", "翼", "wing"], detail: "wing" },
   { tag: "horn", words: ["角", "horn"], detail: "horn" },
+  { tag: "dragon", words: ["龙", "dragon", "wyrm"], detail: "wing" },
+  { tag: "demon", words: ["恶魔", "demon", "devil"], color: 4, detail: "horn" },
   { tag: "archer", words: ["弓", "射手", "archer", "bow"], shape: "bow" },
   { tag: "heavy", words: ["重甲", "巨人", "坦克", "heavy", "giant", "tank"], detail: "heavy" },
   { tag: "gold", words: ["金色", "黄金", "gold", "golden"], color: 3 },
   { tag: "blue", words: ["蓝色", "blue"], color: 1 },
   { tag: "red", words: ["红色", "red"], color: 4 },
+  { tag: "green", words: ["绿色", "green"], color: 2 },
+  { tag: "purple", words: ["紫色", "purple", "violet"], color: 4 },
+  { tag: "white", words: ["白色", "white"], color: 5 },
+  { tag: "black", words: ["黑色", "black"], color: 0 },
 ];
 
 function hashString(input) {
@@ -121,12 +143,20 @@ function slugify(text) {
   return ascii || `asset_${hashString(text).toString(16).slice(0, 6)}`;
 }
 
-function analyzePrompt(prompt) {
+function analyzePrompt(prompt, assetType = "character") {
   const lower = prompt.toLowerCase();
   const matches = keywordMap.filter((item) => item.words.some((word) => lower.includes(word)));
   const tags = [...new Set(matches.map((item) => item.tag))];
-  const colorHint = matches.find((item) => item.color)?.color;
-  const shapePriority = ["shield", "blade", "bow", "key", "scroll", "staff", "potion", "coin", "heart", "rune", "crystal"];
+  const explicitColorTags = ["gold", "blue", "red", "green", "purple", "white", "black"];
+  const explicitColor = matches.find((item) => explicitColorTags.includes(item.tag) && item.color !== undefined);
+  const colorHint = explicitColor?.color ?? matches.find((item) => item.color !== undefined)?.color;
+  const shapePriorityByType = {
+    character: ["shield", "bow", "staff", "blade", "axe", "spear", "hammer"],
+    item: ["shield", "axe", "spear", "hammer", "blade", "bow", "arrow", "key", "chest", "book", "scroll", "potion", "coin", "ring", "bomb", "heart", "rune", "crystal"],
+    ui: ["heart", "coin", "shield", "blade", "bow", "arrow", "key", "book", "scroll", "potion", "ring", "bomb", "staff", "rune", "crystal"],
+    tile: ["default"],
+  };
+  const shapePriority = shapePriorityByType[assetType] || shapePriorityByType.character;
   const shapes = matches.map((item) => item.shape).filter(Boolean);
   const shape = shapePriority.find((candidate) => shapes.includes(candidate)) || "default";
   const details = matches.map((item) => item.detail).filter(Boolean);
@@ -134,7 +164,7 @@ function analyzePrompt(prompt) {
     tags: tags.length ? tags : ["custom"],
     colorHint: colorHint ?? 1,
     shape,
-    details,
+    details: [...new Set(details)],
   };
 }
 
@@ -174,10 +204,11 @@ function readOptions() {
   if (controls.targetAseprite.checked) targets.push("Aseprite");
 
   const prompt = controls.prompt.value.trim() || "fantasy hero";
+  const assetType = controls.assetType.value;
   return {
     prompt,
-    profile: analyzePrompt(prompt),
-    assetType: controls.assetType.value,
+    profile: analyzePrompt(prompt, assetType),
+    assetType,
     actionMode: controls.actionMode.value,
     stylePreset: controls.stylePreset.value,
     size: Number(controls.size.value),
@@ -277,7 +308,7 @@ function drawKiteShield(ctx, cx, cy, width, height, border, fill, accent, block)
 }
 
 function shouldDrawMagicMotifs(profile) {
-  return ["ice", "fire", "crystal", "rune", "magic"].some((tag) => profile.tags.includes(tag))
+  return ["ice", "fire", "crystal", "rune", "magic", "healer", "poison", "shadow"].some((tag) => profile.tags.includes(tag))
     || ["staff", "rune", "crystal"].includes(profile.shape);
 }
 
@@ -322,13 +353,15 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
       ? "robot"
       : options.profile.shape === "shield"
         ? "guardian"
-        : options.profile.shape === "blade" || options.profile.details.includes("warrior")
+        : options.profile.details.includes("scout")
+          ? "scout"
+          : options.profile.shape === "staff" || options.profile.details.includes("caster") || options.profile.details.includes("healer")
+            ? "caster"
+            : ["blade", "axe", "spear", "hammer"].includes(options.profile.shape) || options.profile.details.includes("warrior")
           ? "warrior"
           : options.profile.shape === "bow"
             ? "archer"
-            : options.profile.shape === "staff"
-              ? "caster"
-              : pickWeighted(designRng, ["scout", "guardian", "caster"]);
+            : pickWeighted(designRng, ["scout", "guardian", "caster"]);
   const move = motionDelta(options.actionMode, frame, unit);
   const stance = archetype === "heavy" || archetype === "guardian" ? unit * 2 : archetype === "scout" ? -unit : 0;
   const cx = Math.floor(size / 2 + move.x);
@@ -393,6 +426,11 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx - unit * 4, headY, cx - unit * 7, headY - unit * 5, palette[5], unit);
     drawPixelLine(ctx, cx + unit * 4, headY, cx + unit * 7, headY - unit * 5, palette[5], unit);
   }
+  if (options.profile.details.includes("healer")) {
+    setPixel(ctx, cx - unit * 4, bodyY + unit * 4, palette[5], unit * 2);
+    fillPixelRect(ctx, cx - unit, bodyY + unit * 2, unit * 2, unit * 8, palette[5], unit);
+    fillPixelRect(ctx, cx - unit * 4, bodyY + unit * 5, unit * 8, unit * 2, palette[5], unit);
+  }
   if (archetype === "caster") {
     drawSteppedHat(ctx, cx, headY + unit, unit, dark, accent);
     fillPixelRect(ctx, cx - bodyW, bodyY + unit * 3, bodyW * 2, unit * 2, accent, unit);
@@ -409,6 +447,13 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     const shieldW = unit * (archetype === "heavy" ? 15 : 13);
     const shieldH = unit * (archetype === "heavy" ? 20 : 16);
     drawKiteShield(ctx, cx - bodyW - unit * 4, handY + unit * 4, shieldW, shieldH, dark, primary, accent, unit);
+  } else if (["axe", "hammer"].includes(options.profile.shape)) {
+    drawPixelLine(ctx, cx + bodyW + unit * 2, handY + unit * 7, cx + bodyW + unit * 9 + move.reach, handY - unit * 8, shadeColor(palette[5], -0.16), unit);
+    drawDiamond(ctx, cx + bodyW + unit * 10 + move.reach, handY - unit * 9, unit * 4, dark, unit);
+    fillPixelRect(ctx, cx + bodyW + unit * 8 + move.reach, handY - unit * 11, unit * 5, unit * 6, accent, unit);
+  } else if (options.profile.shape === "spear") {
+    drawPixelLine(ctx, cx + bodyW + unit * 2, handY + unit * 8, cx + bodyW + unit * 13 + move.reach, handY - unit * 9, shadeColor(palette[5], -0.18), unit);
+    drawDiamond(ctx, cx + bodyW + unit * 14 + move.reach, handY - unit * 10, unit * 3, palette[5], unit);
   } else if (options.profile.shape === "blade" || archetype === "warrior") {
     drawPixelLine(ctx, cx + bodyW + unit * 2, handY + unit * 5, cx + bodyW + unit * 8 + move.reach, handY - unit * 8, palette[5], unit);
     drawPixelLine(ctx, cx + bodyW + unit * 3, handY + unit * 5, cx + bodyW + unit * 9 + move.reach, handY - unit * 7, shadeColor(palette[5], -0.2), unit);
@@ -494,6 +539,35 @@ function drawItem(ctx, rng, palette, size, options, frame) {
       setPixel(ctx, cx + unit, cy - radius * 0.45, palette[3], unit);
       setPixel(ctx, cx + unit * 2, cy - radius * 0.65, palette[3], unit);
     }
+  } else if (options.profile.shape === "axe") {
+    drawPixelLine(ctx, cx - radius * 0.75, cy + radius, cx + radius * 0.65, cy - radius * 1.15, shadeColor(palette[5], -0.22), unit);
+    drawPixelLine(ctx, cx - radius * 0.6, cy + radius, cx + radius * 0.8, cy - radius * 1.08, palette[5], unit);
+    drawDiamond(ctx, cx + radius * 0.55, cy - radius * 0.9, radius * 0.7, dark, unit);
+    fillPixelRect(ctx, cx + radius * 0.18, cy - radius * 1.24, radius * 0.75, radius * 0.72, accent, unit);
+    fillPixelRect(ctx, cx + radius * 0.4, cy - radius * 0.78, radius * 0.7, radius * 0.48, shadeColor(accent, -0.2), unit);
+  } else if (options.profile.shape === "spear") {
+    drawPixelLine(ctx, cx - radius * 0.85, cy + radius * 1.15, cx + radius * 0.85, cy - radius * 1.15, shadeColor(palette[5], -0.22), unit);
+    drawPixelLine(ctx, cx - radius * 0.72, cy + radius, cx + radius * 0.75, cy - radius, palette[5], unit);
+    drawDiamond(ctx, cx + radius * 0.92, cy - radius * 1.18, radius * 0.45, dark, unit);
+    drawDiamond(ctx, cx + radius * 0.92, cy - radius * 1.18, radius * 0.28, accent, unit);
+  } else if (options.profile.shape === "hammer") {
+    drawPixelLine(ctx, cx - radius * 0.72, cy + radius * 1.05, cx + radius * 0.5, cy - radius * 0.65, shadeColor(palette[5], -0.2), unit);
+    fillPixelRect(ctx, cx + radius * 0.05, cy - radius * 1.25, radius * 1.25, radius * 0.7, dark, unit);
+    fillPixelRect(ctx, cx + radius * 0.18, cy - radius * 1.1, radius, radius * 0.42, accent, unit);
+    fillPixelRect(ctx, cx + radius * 0.35, cy - radius * 0.95, radius * 0.38, radius * 0.18, light, unit);
+  } else if (options.profile.shape === "bow") {
+    drawPixelLine(ctx, cx - radius * 0.35, cy - radius * 1.2, cx + radius * 0.55, cy, dark, unit);
+    drawPixelLine(ctx, cx + radius * 0.55, cy, cx - radius * 0.35, cy + radius * 1.2, dark, unit);
+    drawPixelLine(ctx, cx - radius * 0.2, cy - radius, cx + radius * 0.42, cy, accent, unit);
+    drawPixelLine(ctx, cx - radius * 0.2, cy + radius, cx + radius * 0.42, cy, accent, unit);
+    drawPixelLine(ctx, cx - radius * 0.95, cy, cx + radius * 0.82, cy, palette[5], unit);
+    drawDiamond(ctx, cx + radius * 0.9, cy, unit * 3, palette[5], unit);
+  } else if (options.profile.shape === "arrow") {
+    drawPixelLine(ctx, cx - radius, cy + radius * 0.55, cx + radius, cy - radius * 0.55, palette[5], unit);
+    drawDiamond(ctx, cx + radius * 1.08, cy - radius * 0.62, radius * 0.38, dark, unit);
+    drawDiamond(ctx, cx + radius * 1.08, cy - radius * 0.62, radius * 0.22, accent, unit);
+    drawPixelLine(ctx, cx - radius, cy + radius * 0.55, cx - radius * 0.58, cy + radius * 0.72, accent, unit);
+    drawPixelLine(ctx, cx - radius, cy + radius * 0.55, cx - radius * 0.82, cy + radius * 0.16, accent, unit);
   } else if (options.profile.shape === "shield") {
     drawKiteShield(ctx, cx, cy, radius * 2.2, radius * 2.8, dark, primary, accent, unit);
     fillPixelRect(ctx, cx - radius * 0.42, cy - radius * 0.7, unit * 2, radius * 0.72, light, unit);
@@ -511,6 +585,31 @@ function drawItem(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx - radius * 0.45, cy - unit * 3, cx + radius * 0.45, cy - unit * 3, dark, unit);
     drawPixelLine(ctx, cx - radius * 0.45, cy + unit, cx + radius * 0.35, cy + unit, accent, unit);
     drawPixelLine(ctx, cx - radius * 0.45, cy + unit * 4, cx + radius * 0.2, cy + unit * 4, dark, unit);
+  } else if (options.profile.shape === "book") {
+    fillPixelRect(ctx, cx - radius * 1.05, cy - radius * 0.8, radius * 2.1, radius * 1.65, dark, unit);
+    fillPixelRect(ctx, cx - radius * 0.9, cy - radius * 0.66, radius * 0.78, radius * 1.35, primary, unit);
+    fillPixelRect(ctx, cx + radius * 0.12, cy - radius * 0.66, radius * 0.78, radius * 1.35, shadeColor(primary, 0.18), unit);
+    fillPixelRect(ctx, cx - unit, cy - radius * 0.72, unit * 2, radius * 1.52, accent, unit);
+    drawPixelLine(ctx, cx - radius * 0.62, cy - unit * 2, cx - radius * 0.18, cy - unit * 2, palette[5], unit);
+    drawPixelLine(ctx, cx + radius * 0.22, cy + unit * 2, cx + radius * 0.62, cy + unit * 2, palette[5], unit);
+  } else if (options.profile.shape === "chest") {
+    fillPixelRect(ctx, cx - radius * 1.2, cy - radius * 0.45, radius * 2.4, radius * 1.35, dark, unit);
+    fillPixelRect(ctx, cx - radius, cy - radius * 0.28, radius * 2, radius, primary, unit);
+    fillPixelRect(ctx, cx - radius, cy - radius * 0.65, radius * 2, radius * 0.45, shadeColor(primary, 0.2), unit);
+    fillPixelRect(ctx, cx - radius * 1.05, cy, radius * 2.1, unit * 3, accent, unit);
+    fillPixelRect(ctx, cx - unit * 2, cy - unit, unit * 4, unit * 5, palette[5], unit);
+  } else if (options.profile.shape === "ring") {
+    drawDiamond(ctx, cx, cy, radius + unit * 3, dark, unit);
+    drawDiamond(ctx, cx, cy, radius + unit, accent, unit);
+    ctx.clearRect(cx - radius * 0.42, cy - radius * 0.42, radius * 0.84, radius * 0.84);
+    drawDiamond(ctx, cx + radius * 0.2, cy - radius * 0.72, radius * 0.38, dark, unit);
+    drawDiamond(ctx, cx + radius * 0.2, cy - radius * 0.72, radius * 0.24, primary, unit);
+  } else if (options.profile.shape === "bomb") {
+    drawDiamond(ctx, cx, cy + unit * 2, radius + unit * 4, dark, unit);
+    drawDiamond(ctx, cx, cy + unit * 2, radius + unit * 2, shadeColor(primary, -0.35), unit);
+    fillPixelRect(ctx, cx - unit * 2, cy - radius - unit * 2, unit * 5, unit * 4, palette[5], unit);
+    drawPixelLine(ctx, cx + unit, cy - radius - unit * 2, cx + radius * 0.8, cy - radius * 1.2, dark, unit);
+    drawSparkle(ctx, cx + radius, cy - radius * 1.25, accent, unit * 2);
   } else if (options.profile.shape === "crystal") {
     drawDiamond(ctx, cx, cy, radius + unit * 4, dark, unit);
     drawDiamond(ctx, cx, cy, radius + unit * 3, primary, unit);
@@ -551,10 +650,32 @@ function drawItem(ctx, rng, palette, size, options, frame) {
 
 function drawTile(ctx, rng, palette, size, options) {
   const unit = Math.max(2, Math.floor(size / 16));
-  const isStone = options.profile.tags.includes("stone");
+  const isWater = options.profile.tags.includes("water");
+  const isSand = options.profile.tags.includes("sand");
+  const isWood = options.profile.tags.includes("wood");
+  const isMetal = options.profile.tags.includes("metal");
+  const isPoison = options.profile.tags.includes("poison");
+  const isStone = options.profile.tags.includes("stone") && !isWater && !isSand && !isWood && !isMetal && !isPoison;
   const hasMoss = options.profile.tags.includes("moss") || options.profile.tags.includes("forest");
-  const base = isStone ? "#7a827b" : options.profile.tags.includes("ice") ? palette[1] : options.profile.tags.includes("fire") ? palette[3] : palette[2];
-  const detail = hasMoss ? palette[2] : options.profile.tags.includes("forest") ? palette[5] : palette[3];
+  const base = isStone
+    ? "#7a827b"
+    : isWater
+      ? palette[1]
+      : isSand
+        ? "#d9a441"
+        : isWood
+          ? "#8b5a2b"
+          : isMetal
+            ? "#8b96a3"
+            : isPoison
+              ? palette[2]
+              : options.profile.tags.includes("ice")
+                ? palette[1]
+                : options.profile.tags.includes("fire")
+                  ? palette[3]
+                  : palette[2];
+  const materialDetail = isWater || isSand || isWood || isMetal || isPoison ? shadeColor(base, 0.24) : palette[3];
+  const detail = hasMoss ? palette[2] : options.profile.tags.includes("forest") ? palette[5] : materialDetail;
   const dark = palette[0];
   const baseLight = shadeColor(base, 0.18);
   const baseShade = shadeColor(base, -0.22);
@@ -584,6 +705,38 @@ function drawTile(ctx, rng, palette, size, options) {
     for (let x = unit * 4; x < size; x += unit * 6) {
       drawPixelLine(ctx, x, unit, x + (rng() > 0.5 ? unit : -unit), size - unit * 2, baseShade, unit);
     }
+  }
+
+  if (isWater) {
+    for (let y = unit * 2; y < size; y += unit * 4) {
+      drawPixelLine(ctx, unit, y, size - unit * 2, y + (rng() > 0.5 ? unit : -unit), shadeColor(base, 0.34), unit);
+    }
+  }
+
+  if (isSand) {
+    for (let i = 0; i < 18; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      setPixel(ctx, x, y, rng() > 0.5 ? shadeColor(base, 0.24) : shadeColor(base, -0.18), unit);
+    }
+  }
+
+  if (isWood) {
+    for (let y = unit * 3; y < size; y += unit * 5) {
+      drawPixelLine(ctx, 0, y, size, y, shadeColor(base, -0.24), unit);
+    }
+    for (let i = 0; i < 5; i += 1) {
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawPixelLine(ctx, unit * 2, y, size - unit * 2, y + unit * (rng() > 0.5 ? 1 : -1), shadeColor(base, 0.22), unit);
+    }
+  }
+
+  if (isMetal) {
+    for (let x = unit * 4; x < size; x += unit * 6) {
+      drawPixelLine(ctx, x, unit, x + unit * 2, size - unit * 2, shadeColor(base, 0.26), unit);
+    }
+    fillPixelRect(ctx, unit * 2, unit * 2, unit * 3, unit * 3, shadeColor(base, 0.36), unit);
+    fillPixelRect(ctx, size - unit * 5, size - unit * 5, unit * 3, unit * 3, shadeColor(base, -0.28), unit);
   }
 
   if (hasMoss) {
@@ -617,6 +770,14 @@ function drawTile(ctx, rng, palette, size, options) {
       const y = Math.floor(rng() * size / unit) * unit;
       drawPixelLine(ctx, x, y, x + unit * 4, y, palette[0], unit);
       setPixel(ctx, x + unit * 2, y, palette[3], unit);
+    }
+  }
+
+  if (isPoison) {
+    for (let i = 0; i < 5; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawDiamond(ctx, x, y, unit * (2 + Math.floor(rng() * 2)), shadeColor(palette[2], rng() > 0.5 ? 0.28 : -0.2), unit);
     }
   }
 
@@ -658,7 +819,9 @@ function drawUiIcon(ctx, rng, palette, size, options, frame) {
   ctx.clearRect(pad + unit * 5, pad + unit * 6, size - pad * 2 - unit * 10, size - pad * 2 - unit * 12);
 
   if (options.profile.shape === "heart") {
-    drawHeart(ctx, Math.floor(size * 0.38), Math.floor(size * 0.34), unit * 2, accent);
+    drawHeart(ctx, Math.floor(size * 0.35), Math.floor(size * 0.34), unit * 2, dark);
+    drawHeart(ctx, Math.floor(size * 0.37), Math.floor(size * 0.34), unit * 2, palette[4]);
+    setPixel(ctx, size * 0.47, size * 0.4, shadeColor(palette[4], 0.45), unit * 2);
   } else if (options.profile.shape === "coin") {
     drawDiamond(ctx, size / 2, size / 2, size * 0.18 + frame * unit * 0.4, dark, unit);
     drawDiamond(ctx, size / 2, size / 2, size * 0.15 + frame * unit * 0.4, palette[3], unit);
@@ -680,6 +843,29 @@ function drawUiIcon(ctx, rng, palette, size, options, frame) {
   } else if (options.profile.shape === "blade") {
     drawPixelLine(ctx, size * 0.4, size * 0.66, size * 0.62, size * 0.34, "#ffffff", unit * 2);
     fillPixelRect(ctx, size * 0.36, size * 0.64, size * 0.28, unit * 3, accent, unit);
+  } else if (options.profile.shape === "axe" || options.profile.shape === "hammer") {
+    drawPixelLine(ctx, size * 0.38, size * 0.66, size * 0.58, size * 0.36, palette[5], unit * 2);
+    fillPixelRect(ctx, size * 0.52, size * 0.3, size * 0.18, size * 0.14, accent, unit);
+    fillPixelRect(ctx, size * 0.56, size * 0.38, size * 0.1, size * 0.12, dark, unit);
+  } else if (options.profile.shape === "spear" || options.profile.shape === "arrow") {
+    drawPixelLine(ctx, size * 0.34, size * 0.66, size * 0.66, size * 0.34, palette[5], unit * 2);
+    drawDiamond(ctx, size * 0.68, size * 0.32, size * 0.07, accent, unit);
+  } else if (options.profile.shape === "bow") {
+    drawPixelLine(ctx, size * 0.44, size * 0.32, size * 0.58, size * 0.5, dark, unit * 2);
+    drawPixelLine(ctx, size * 0.58, size * 0.5, size * 0.44, size * 0.68, dark, unit * 2);
+    drawPixelLine(ctx, size * 0.35, size * 0.5, size * 0.68, size * 0.5, palette[5], unit);
+  } else if (options.profile.shape === "book" || options.profile.shape === "chest") {
+    fillPixelRect(ctx, size * 0.34, size * 0.34, size * 0.32, size * 0.3, dark, unit);
+    fillPixelRect(ctx, size * 0.37, size * 0.37, size * 0.26, size * 0.24, primary, unit);
+    fillPixelRect(ctx, size * 0.48, size * 0.34, unit * 2, size * 0.3, accent, unit);
+  } else if (options.profile.shape === "ring") {
+    drawDiamond(ctx, size / 2, size / 2, size * 0.16, dark, unit);
+    drawDiamond(ctx, size / 2, size / 2, size * 0.12, palette[3], unit);
+    ctx.clearRect(size * 0.45, size * 0.45, size * 0.1, size * 0.1);
+  } else if (options.profile.shape === "bomb") {
+    drawDiamond(ctx, size / 2, size * 0.54, size * 0.16, dark, unit);
+    drawDiamond(ctx, size / 2, size * 0.54, size * 0.12, shadeColor(primary, -0.25), unit);
+    drawSparkle(ctx, size * 0.62, size * 0.34, accent, unit * 2);
   } else if (options.profile.shape === "staff" || options.profile.shape === "rune") {
     drawPixelLine(ctx, size * 0.42, size * 0.66, size * 0.58, size * 0.34, dark, unit * 2);
     drawSparkle(ctx, size * 0.6, size * 0.32, accent, unit * 2);

@@ -66,6 +66,8 @@ const keywordMap = [
   { tag: "ice", words: ["冰", "霜", "雪", "frost", "ice", "snow"], color: 1 },
   { tag: "fire", words: ["火", "炎", "lava", "fire"], color: 3 },
   { tag: "forest", words: ["森林", "草", "木", "leaf", "forest"], color: 2 },
+  { tag: "robot", words: ["机器人", "机械", "robot", "mech"], color: 1, detail: "visor" },
+  { tag: "crystal", words: ["水晶", "宝石", "crystal", "gem"], shape: "crystal" },
   { tag: "magic", words: ["法师", "魔法", "mage", "magic"], shape: "staff" },
   { tag: "blade", words: ["剑", "刀", "sword", "blade"], shape: "blade" },
   { tag: "shield", words: ["盾", "防御", "shield"], shape: "shield" },
@@ -165,6 +167,53 @@ function fillPixelRect(ctx, x, y, width, height, color, block = 1) {
   ctx.fillRect(Math.round(x), Math.round(y), Math.round(width / block) * block, Math.round(height / block) * block);
 }
 
+function clamp(value, min = 0, max = 255) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function hexToRgb(color) {
+  const clean = color.replace("#", "");
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }) {
+  return `#${[r, g, b].map((value) => clamp(Math.round(value)).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function mixColor(a, b, amount) {
+  const first = hexToRgb(a);
+  const second = hexToRgb(b);
+  return rgbToHex({
+    r: first.r + (second.r - first.r) * amount,
+    g: first.g + (second.g - first.g) * amount,
+    b: first.b + (second.b - first.b) * amount,
+  });
+}
+
+function shadeColor(color, amount) {
+  return amount >= 0 ? mixColor(color, "#ffffff", amount) : mixColor(color, "#000000", Math.abs(amount));
+}
+
+function drawPixelLine(ctx, x1, y1, x2, y2, color, block = 1) {
+  const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)) / block;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = steps === 0 ? 0 : i / steps;
+    setPixel(ctx, x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, color, block);
+  }
+}
+
+function drawSparkle(ctx, x, y, color, block = 1) {
+  setPixel(ctx, x, y, color, block);
+  setPixel(ctx, x - block, y, color, block);
+  setPixel(ctx, x + block, y, color, block);
+  setPixel(ctx, x, y - block, color, block);
+  setPixel(ctx, x, y + block, color, block);
+}
+
 function drawSymmetric(ctx, centerX, y, width, height, color, block = 1) {
   for (let row = 0; row < height; row += block) {
     for (let col = 0; col < width; col += block) {
@@ -197,38 +246,68 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
   const primary = palette[options.profile.colorHint] || palette[1];
   const accent = palette[3 + Math.floor(rng() * 2)];
   const dark = palette[0];
+  const primaryLight = shadeColor(primary, 0.28);
+  const primaryShade = shadeColor(primary, -0.28);
+  const accentLight = shadeColor(accent, 0.26);
   const bodyY = Math.floor(size * 0.38 + move.y);
   const bodyH = Math.floor(size * (0.27 + options.variance * 0.011));
   const bodyW = Math.floor(size * 0.15);
   const head = Math.floor(size * 0.18);
+  const shoulderY = bodyY + unit * 2;
 
   if (options.shadow) drawGroundShadow(ctx, size);
   if (options.profile.details.includes("cape")) {
-    drawSymmetric(ctx, cx, bodyY + unit * 2, bodyW + unit * 5, bodyH + unit * 4, palette[4], unit);
+    drawSymmetric(ctx, cx, bodyY + unit * 2, bodyW + unit * 5, bodyH + unit * 5, palette[4], unit);
+    drawSymmetric(ctx, cx + unit, bodyY + bodyH, bodyW + unit * 4, unit * 4, shadeColor(palette[4], -0.28), unit);
   }
 
   drawSymmetric(ctx, cx, bodyY, bodyW, bodyH, primary, unit);
+  drawSymmetric(ctx, cx, shoulderY, bodyW + unit * 3, unit * 3, primaryShade, unit);
+  fillPixelRect(ctx, cx - bodyW, bodyY + unit * 3, unit * 3, bodyH - unit * 5, primaryLight, unit);
+  fillPixelRect(ctx, cx + bodyW - unit * 2, bodyY + unit * 4, unit * 3, bodyH - unit * 5, primaryShade, unit);
   drawSymmetric(ctx, cx, bodyY + bodyH - unit, bodyW + unit * 2, unit * 4, accent, unit);
+  fillPixelRect(ctx, cx - bodyW - unit, bodyY + Math.floor(bodyH * 0.58), bodyW * 2 + unit * 2, unit * 2, dark, unit);
+  setPixel(ctx, cx - unit, bodyY + Math.floor(bodyH * 0.58), accentLight, unit * 2);
 
   fillPixelRect(ctx, cx - head / 2, Math.floor(size * 0.18 + move.y), head, head, skin, unit);
-  setPixel(ctx, cx - unit * 3, Math.floor(size * 0.28 + move.y), dark, unit);
-  setPixel(ctx, cx + unit * 2, Math.floor(size * 0.28 + move.y), dark, unit);
+  fillPixelRect(ctx, cx - head / 2, Math.floor(size * 0.18 + move.y), head, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - head / 2, Math.floor(size * 0.18 + move.y) + head - unit * 3, head, unit * 2, shadeColor(skin, -0.16), unit);
+  if (options.profile.details.includes("visor")) {
+    fillPixelRect(ctx, cx - unit * 4, Math.floor(size * 0.27 + move.y), unit * 8, unit * 2, accentLight, unit);
+  } else {
+    setPixel(ctx, cx - unit * 3, Math.floor(size * 0.28 + move.y), dark, unit);
+    setPixel(ctx, cx + unit * 2, Math.floor(size * 0.28 + move.y), dark, unit);
+    setPixel(ctx, cx - unit, Math.floor(size * 0.33 + move.y), shadeColor(skin, -0.25), unit);
+  }
   drawSymmetric(ctx, cx, bodyY + unit * 3, bodyW + unit * 4, unit * 2, accent, unit);
-  drawSymmetric(ctx, cx, bodyY + bodyH, unit * 4, Math.floor(size * 0.16), dark, unit);
+  drawSymmetric(ctx, cx, bodyY + bodyH, unit * 3, Math.floor(size * 0.16), dark, unit);
+  setPixel(ctx, cx - unit * 4, bodyY + bodyH + unit * (frame % 2), primaryShade, unit * 2);
+  setPixel(ctx, cx + unit * 3, bodyY + bodyH + unit * ((frame + 1) % 2), primaryShade, unit * 2);
 
   const handY = bodyY + unit * 7;
   if (options.profile.shape === "blade") {
-    fillPixelRect(ctx, cx + bodyW + unit * 2, handY - move.reach, unit * 2, size * 0.28, palette[5], unit);
-    setPixel(ctx, cx + bodyW + unit * 2, handY - move.reach - unit, dark, unit * 2);
+    drawPixelLine(ctx, cx + bodyW + unit * 2, handY + unit * 5, cx + bodyW + unit * 8 + move.reach, handY - unit * 8, palette[5], unit);
+    drawPixelLine(ctx, cx + bodyW + unit * 3, handY + unit * 5, cx + bodyW + unit * 9 + move.reach, handY - unit * 7, shadeColor(palette[5], -0.2), unit);
+    fillPixelRect(ctx, cx + bodyW, handY, unit * 6, unit * 2, accent, unit);
   } else {
     fillPixelRect(ctx, cx + bodyW + unit * 4 + move.reach, handY - unit * 5, unit * 2, size * 0.32, dark, unit);
     setPixel(ctx, cx + bodyW + unit * 3 + move.reach, handY - unit * 6, accent, unit * 4);
+    setPixel(ctx, cx + bodyW + unit * 4 + move.reach, handY - unit * 5, accentLight, unit * 2);
   }
 
   for (let i = 0; i < 8 + options.variance; i += 1) {
     const sparkleX = Math.floor(rng() * size);
     const sparkleY = Math.floor(rng() * size * 0.72);
-    setPixel(ctx, sparkleX, sparkleY, rng() > 0.45 ? accent : palette[2], unit);
+    if (rng() > 0.45) drawSparkle(ctx, sparkleX, sparkleY, rng() > 0.45 ? accent : palette[2], unit);
+  }
+
+  if (options.profile.tags.includes("ice")) {
+    drawPixelLine(ctx, cx - unit * 7, bodyY - unit * 3, cx - unit * 3, bodyY - unit * 8, palette[1], unit);
+    drawPixelLine(ctx, cx + unit * 7, bodyY - unit * 3, cx + unit * 3, bodyY - unit * 8, palette[1], unit);
+  }
+  if (options.profile.tags.includes("fire")) {
+    setPixel(ctx, cx - unit * 2, bodyY - unit * 5, palette[3], unit * 2);
+    setPixel(ctx, cx, bodyY - unit * 7, accentLight, unit * 2);
   }
 }
 
@@ -248,31 +327,49 @@ function drawItem(ctx, rng, palette, size, options, frame) {
   const primary = palette[options.profile.colorHint] || palette[1];
   const accent = palette[2 + Math.floor(rng() * 3)];
   const dark = palette[0];
+  const light = shadeColor(primary, 0.32);
+  const shade = shadeColor(primary, -0.3);
   const radius = Math.floor(size * (0.16 + options.variance * 0.008));
 
   if (options.shadow) drawGroundShadow(ctx, size);
 
   if (options.profile.shape === "potion") {
-    fillPixelRect(ctx, cx - radius * 0.7, cy - radius, radius * 1.4, radius * 1.8, primary, unit);
+    fillPixelRect(ctx, cx - radius * 0.82, cy - radius, radius * 1.64, radius * 1.85, shade, unit);
+    fillPixelRect(ctx, cx - radius * 0.68, cy - radius + unit, radius * 1.2, radius * 1.55, primary, unit);
     fillPixelRect(ctx, cx - radius * 0.35, cy - radius * 1.45, radius * 0.7, radius * 0.55, palette[5], unit);
     fillPixelRect(ctx, cx - radius * 0.8, cy + radius * 0.55, radius * 1.6, unit * 3, accent, unit);
+    fillPixelRect(ctx, cx - radius * 0.42, cy - radius * 0.55, unit * 2, radius * 0.9, light, unit);
+    setPixel(ctx, cx + radius * 0.35, cy - radius * 0.2, shadeColor(accent, 0.35), unit * 2);
   } else if (options.profile.shape === "blade") {
-    fillPixelRect(ctx, cx - unit, cy - radius * 1.5, unit * 3, radius * 2.4, palette[5], unit);
+    drawPixelLine(ctx, cx - unit * 2, cy + radius * 1.3, cx + unit * 2, cy - radius * 1.7, shadeColor(palette[5], -0.18), unit);
+    drawPixelLine(ctx, cx - unit, cy + radius * 1.2, cx + unit * 3, cy - radius * 1.6, palette[5], unit);
+    drawPixelLine(ctx, cx + unit, cy + radius * 0.9, cx + unit * 3, cy - radius * 1.2, "#ffffff", unit);
     fillPixelRect(ctx, cx - radius, cy + radius * 0.7, radius * 2, unit * 3, accent, unit);
     fillPixelRect(ctx, cx - unit, cy + radius, unit * 3, radius, dark, unit);
   } else if (options.profile.shape === "shield") {
+    drawDiamond(ctx, cx, cy, radius + unit * 4, dark, unit);
     drawDiamond(ctx, cx, cy, radius + unit * 3, primary, unit);
     drawDiamond(ctx, cx, cy, radius, accent, unit);
     fillPixelRect(ctx, cx - unit, cy - radius, unit * 2, radius * 2, palette[5], unit);
+    fillPixelRect(ctx, cx - radius * 0.45, cy - radius * 0.55, unit * 2, radius * 0.8, light, unit);
+  } else if (options.profile.shape === "crystal") {
+    drawDiamond(ctx, cx, cy, radius + unit * 4, dark, unit);
+    drawDiamond(ctx, cx, cy, radius + unit * 3, primary, unit);
+    drawPixelLine(ctx, cx, cy - radius - unit * 3, cx, cy + radius + unit * 2, light, unit);
+    drawPixelLine(ctx, cx - radius, cy, cx + radius, cy, shade, unit);
+    setPixel(ctx, cx - unit * 2, cy - unit * 4, "#ffffff", unit * 2);
   } else {
+    drawDiamond(ctx, cx, cy, radius + unit * 3, dark, unit);
     drawDiamond(ctx, cx, cy, radius + unit * 2, primary, unit);
     drawDiamond(ctx, cx, cy, radius * 0.55, accent, unit);
+    drawPixelLine(ctx, cx - radius * 0.7, cy - unit, cx + radius * 0.6, cy - radius * 0.55, light, unit);
+    drawPixelLine(ctx, cx + radius * 0.2, cy + radius * 0.7, cx + radius * 0.78, cy, shade, unit);
   }
 
   for (let i = 0; i < 5 + options.variance; i += 1) {
     const angle = rng() * Math.PI * 2;
     const dist = radius + unit * (2 + Math.floor(rng() * 5));
-    setPixel(ctx, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, accent, unit);
+    if (rng() > 0.25) drawSparkle(ctx, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, accent, unit);
   }
 }
 
@@ -281,20 +378,59 @@ function drawTile(ctx, rng, palette, size, options) {
   const base = options.profile.tags.includes("ice") ? palette[1] : options.profile.tags.includes("fire") ? palette[3] : palette[2];
   const detail = options.profile.tags.includes("forest") ? palette[5] : palette[3];
   const dark = palette[0];
+  const baseLight = shadeColor(base, 0.18);
+  const baseShade = shadeColor(base, -0.22);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, size, size);
 
   for (let y = 0; y < size; y += unit) {
     for (let x = 0; x < size; x += unit) {
       const noise = rng();
-      if (noise > 0.72 - options.variance * 0.025) setPixel(ctx, x, y, detail, unit);
-      if (noise < 0.08) setPixel(ctx, x, y, dark, unit);
+      if (noise > 0.8 - options.variance * 0.022) setPixel(ctx, x, y, detail, unit);
+      if (noise > 0.58 && noise < 0.66) setPixel(ctx, x, y, baseLight, unit);
+      if (noise < 0.12) setPixel(ctx, x, y, baseShade, unit);
+      if (noise < 0.045) setPixel(ctx, x, y, dark, unit);
+    }
+  }
+
+  for (let i = 0; i < 4 + Math.floor(options.variance / 2); i += 1) {
+    const x = Math.floor(rng() * size / unit) * unit;
+    const y = Math.floor(rng() * size / unit) * unit;
+    drawPixelLine(ctx, x, y, x + unit * (2 + Math.floor(rng() * 4)), y + unit * (rng() > 0.5 ? 1 : -1), baseShade, unit);
+  }
+
+  if (options.profile.tags.includes("forest")) {
+    for (let i = 0; i < 5; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawPixelLine(ctx, x, y, x + unit * 3, y + unit * (rng() > 0.5 ? 1 : -1), palette[2], unit);
+      setPixel(ctx, x + unit * 3, y, detail, unit);
+    }
+  }
+
+  if (options.profile.tags.includes("ice")) {
+    for (let i = 0; i < 4; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawSparkle(ctx, x, y, "#ffffff", unit);
+    }
+  }
+
+  if (options.profile.tags.includes("fire")) {
+    for (let i = 0; i < 5; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawPixelLine(ctx, x, y, x + unit * 4, y, palette[0], unit);
+      setPixel(ctx, x + unit * 2, y, palette[3], unit);
     }
   }
 
   ctx.strokeStyle = "rgba(23, 32, 42, 0.35)";
   ctx.lineWidth = Math.max(1, Math.floor(size / 64));
   ctx.strokeRect(0, 0, size, size);
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  ctx.strokeRect(unit, unit, size - unit * 2, size - unit * 2);
 }
 
 function drawHeart(ctx, cx, cy, unit, color) {
@@ -313,23 +449,38 @@ function drawUiIcon(ctx, rng, palette, size, options, frame) {
   const primary = palette[options.profile.colorHint] || palette[1];
   const accent = palette[4];
   const dark = palette[0];
+  const light = shadeColor(primary, 0.35);
+  const shade = shadeColor(primary, -0.28);
   const pad = Math.floor(size * 0.18);
 
   if (options.shadow) drawGroundShadow(ctx, size);
+  fillPixelRect(ctx, pad - unit * 2, pad - unit * 2, size - pad * 2 + unit * 4, size - pad * 2 + unit * 4, dark, unit);
   fillPixelRect(ctx, pad, pad, size - pad * 2, size - pad * 2, primary, unit);
-  ctx.clearRect(pad + unit * 3, pad + unit * 3, size - pad * 2 - unit * 6, size - pad * 2 - unit * 6);
-  fillPixelRect(ctx, pad, pad, size - pad * 2, unit * 3, dark, unit);
-  fillPixelRect(ctx, pad, size - pad - unit * 3, size - pad * 2, unit * 3, dark, unit);
+  fillPixelRect(ctx, pad + unit * 2, pad + unit * 2, size - pad * 2 - unit * 4, unit * 3, light, unit);
+  fillPixelRect(ctx, pad + unit * 2, size - pad - unit * 5, size - pad * 2 - unit * 4, unit * 3, shade, unit);
+  ctx.clearRect(pad + unit * 5, pad + unit * 6, size - pad * 2 - unit * 10, size - pad * 2 - unit * 12);
 
   if (options.profile.shape === "heart") {
     drawHeart(ctx, Math.floor(size * 0.38), Math.floor(size * 0.34), unit * 2, accent);
   } else if (options.profile.shape === "coin") {
-    drawDiamond(ctx, size / 2, size / 2, size * 0.17 + frame * unit * 0.4, palette[3], unit);
+    drawDiamond(ctx, size / 2, size / 2, size * 0.18 + frame * unit * 0.4, dark, unit);
+    drawDiamond(ctx, size / 2, size / 2, size * 0.15 + frame * unit * 0.4, palette[3], unit);
+    drawPixelLine(ctx, size * 0.44, size * 0.42, size * 0.58, size * 0.58, shadeColor(palette[3], 0.38), unit);
+  } else if (options.profile.shape === "shield") {
+    drawDiamond(ctx, size / 2, size / 2, size * 0.17, dark, unit);
+    drawDiamond(ctx, size / 2, size / 2, size * 0.14, accent, unit);
+    fillPixelRect(ctx, size / 2 - unit, size * 0.38, unit * 2, size * 0.23, "#ffffff", unit);
+  } else if (options.profile.shape === "blade") {
+    drawPixelLine(ctx, size * 0.4, size * 0.66, size * 0.62, size * 0.34, "#ffffff", unit * 2);
+    fillPixelRect(ctx, size * 0.36, size * 0.64, size * 0.28, unit * 3, accent, unit);
+  } else if (options.profile.shape === "staff") {
+    drawPixelLine(ctx, size * 0.42, size * 0.66, size * 0.58, size * 0.34, dark, unit * 2);
+    drawSparkle(ctx, size * 0.6, size * 0.32, accent, unit * 2);
   } else {
     for (let i = 0; i < 4 + options.variance; i += 1) {
       const x = pad + unit * 4 + Math.floor(rng() * (size - pad * 2 - unit * 8));
       const y = pad + unit * 4 + Math.floor(rng() * (size - pad * 2 - unit * 8));
-      setPixel(ctx, x, y, accent, unit * 2);
+      drawSparkle(ctx, x, y, accent, unit);
     }
   }
 }
@@ -411,6 +562,7 @@ function makeMetadata(options, seed, palette) {
       outline: options.outline,
       shadow: options.shadow,
       paletteLocked: options.paletteLocked,
+      qualityPasses: ["silhouette", "directional_light", "material_detail", "semantic_motifs"],
     },
     importSettings: {
       filterMode: "Point",

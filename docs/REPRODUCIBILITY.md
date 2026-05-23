@@ -45,7 +45,7 @@ http://localhost:4173/
 - 主画布中的像素角色。
 - 4 帧动作帧。
 - 4 个风格一致变体。
-- JSON 元数据，其中包含 `seed`、`palette`、`frames`、`importSettings.workflow`。
+- JSON 元数据，其中包含 `seed`、`palette`、`frames`、`renderOptions.qualityPasses`、`importSettings.workflow`。
 - 项目素材库区域，初始状态为空。
 
 ## 结果可复现机制
@@ -55,6 +55,7 @@ http://localhost:4173/
 - 同一份代码、同一组参数会得到同一结果。
 - 点击“换一版”会改变 seed 偏移，生成同风格变体。
 - 锁定调色板后切换风格不会覆盖当前颜色，便于团队保持统一视觉语言。
+- 质量增强规则也由同一 seed 驱动，包括高光、裂纹、藤蔓、闪光和语义符号分布。
 
 ## 导出验证
 

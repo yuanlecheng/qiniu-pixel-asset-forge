@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>七牛云训练营 - Pixel Asset Forge</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="control-panel" aria-label="生成参数">
+        <div class="brand">
+          <span class="brand-mark">Q</span>
+          <div>
+            <h1>Pixel Asset Forge</h1>
+            <p>文本驱动 2D 游戏素材生成器</p>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>素材描述</span>
+          <textarea id="prompt" rows="4" maxlength="180">冰霜法师，蓝色披风，适合横版冒险游戏</textarea>
+        </label>
+
+        <div class="grid-two">
+          <label class="field">
+            <span>素材类型</span>
+            <select id="assetType">
+              <option value="character">角色</option>
+              <option value="item">道具</option>
+              <option value="tile">地块</option>
+              <option value="ui">UI 图标</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>动作/用途</span>
+            <select id="actionMode">
+              <option value="idle">Idle 待机</option>
+              <option value="run">Run 奔跑</option>
+              <option value="attack">Attack 攻击</option>
+              <option value="hit">Hit 受击</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid-two">
+          <label class="field">
+            <span>视觉风格</span>
+            <select id="stylePreset">
+              <option value="arcade">街机像素</option>
+              <option value="fantasy">奇幻冒险</option>
+              <option value="sciFi">科幻霓虹</option>
+              <option value="cozy">温暖手作</option>
+              <option value="forest">森林童话</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>画布规格</span>
+            <select id="size">
+              <option value="32">32 x 32</option>
+              <option value="48">48 x 48</option>
+              <option value="64" selected>64 x 64</option>
+              <option value="96">96 x 96</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>变化强度</span>
+          <input id="variance" type="range" min="1" max="9" value="5" />
+        </label>
+
+        <fieldset class="field">
+          <legend>渲染选项</legend>
+          <div class="chip-row" role="group" aria-label="渲染选项">
+            <label><input type="checkbox" id="outline" checked /> 像素描边</label>
+            <label><input type="checkbox" id="shadow" checked /> 接地阴影</label>
+            <label><input type="checkbox" id="paletteLock" /> 锁定调色板</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>调色板</legend>
+          <div class="palette-editor" aria-label="调色板颜色">
+            <input id="color0" type="color" aria-label="暗部色" />
+            <input id="color1" type="color" aria-label="主色" />
+            <input id="color2" type="color" aria-label="辅色" />
+            <input id="color3" type="color" aria-label="高光色" />
+            <input id="color4" type="color" aria-label="强调色" />
+            <input id="color5" type="color" aria-label="浅色" />
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>导出目标</legend>
+          <div class="chip-row" role="group" aria-label="导出目标">
+            <label><input type="checkbox" id="targetUnity" checked /> Unity</label>
+            <label><input type="checkbox" id="targetGodot" checked /> Godot</label>
+            <label><input type="checkbox" id="targetAseprite" checked /> Aseprite</label>
+          </div>
+        </fieldset>
+
+        <div class="button-row">
+          <button id="generateBtn" class="primary" type="button">生成</button>
+          <button id="randomBtn" type="button">换一版</button>
+        </div>
+
+        <div class="button-grid">
+          <button id="downloadPngBtn" type="button">PNG</button>
+          <button id="downloadSheetBtn" type="button">精灵表</button>
+          <button id="downloadMetaBtn" type="button">JSON</button>
+        </div>
+      </aside>
+
+      <section class="workbench" aria-label="素材预览">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Topic 02 / 72 小时 MVP</p>
+            <h2>可导入游戏开发流程的 2D 素材流水线</h2>
+          </div>
+          <div class="status-pill" id="statusText">已就绪</div>
+        </header>
+
+        <section class="preview-layout">
+          <div class="preview-stage">
+            <canvas id="mainCanvas" width="512" height="512" aria-label="生成结果"></canvas>
+          </div>
+
+          <aside class="inspector" aria-label="素材信息">
+            <h3>素材包</h3>
+            <dl>
+              <div>
+                <dt>命名</dt>
+                <dd id="assetName">frost_mage_character</dd>
+              </div>
+              <div>
+                <dt>尺寸</dt>
+                <dd id="assetSize">64 x 64</dd>
+              </div>
+              <div>
+                <dt>风格</dt>
+                <dd id="assetStyle">街机像素</dd>
+              </div>
+              <div>
+                <dt>导入建议</dt>
+                <dd id="importHint">Point Filter / No Compression</dd>
+              </div>
+            </dl>
+            <div class="quality-grid" aria-label="质量指标">
+              <span>透明 PNG</span>
+              <span>4 帧动作</span>
+              <span>稳定种子</span>
+              <span>工具链元数据</span>
+            </div>
+          </aside>
+        </section>
+
+        <section class="strip-section" aria-label="动作帧">
+          <div class="section-head">
+            <h3>动作帧</h3>
+            <span id="frameLabel">Idle / 4 frames</span>
+          </div>
+          <div class="canvas-strip">
+            <figure>
+              <canvas class="motion" width="128" height="128"></canvas>
+              <figcaption>01</figcaption>
+            </figure>
+            <figure>
+              <canvas class="motion" width="128" height="128"></canvas>
+              <figcaption>02</figcaption>
+            </figure>
+            <figure>
+              <canvas class="motion" width="128" height="128"></canvas>
+              <figcaption>03</figcaption>
+            </figure>
+            <figure>
+              <canvas class="motion" width="128" height="128"></canvas>
+              <figcaption>04</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="strip-section" aria-label="生成变体">
+          <div class="section-head">
+            <h3>风格一致变体</h3>
+            <span>同一提示词，不同种子</span>
+          </div>
+          <div class="canvas-strip">
+            <figure>
+              <canvas class="variant" width="128" height="128"></canvas>
+              <figcaption>A</figcaption>
+            </figure>
+            <figure>
+              <canvas class="variant" width="128" height="128"></canvas>
+              <figcaption>B</figcaption>
+            </figure>
+            <figure>
+              <canvas class="variant" width="128" height="128"></canvas>
+              <figcaption>C</figcaption>
+            </figure>
+            <figure>
+              <canvas class="variant" width="128" height="128"></canvas>
+              <figcaption>D</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="workflow-panel" aria-label="工作流适配">
+          <div>
+            <h3>工具链适配</h3>
+            <p id="workflowText">Unity / Godot / Aseprite：像素过滤、无压缩、精灵表 4 列。</p>
+          </div>
+          <div>
+            <h3>提示词解析</h3>
+            <p id="promptTags">ice, mage, cape</p>
+          </div>
+        </section>
+
+        <section class="metadata-panel">
+          <div class="section-head">
+            <h3>导出元数据</h3>
+            <button id="copyMetaBtn" type="button">复制</button>
+          </div>
+          <pre id="metadataOutput"></pre>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

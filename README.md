@@ -4,6 +4,10 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 
 项目采用原生 HTML、CSS、JavaScript 和 Canvas API 实现，不依赖后端服务或构建工具。克隆仓库后即可运行，生成结果可导出为 PNG、四帧精灵表和 JSON 元数据，便于接入 Unity、Godot、Aseprite 等常见 2D 游戏开发流程。
 
+## 在线预览
+
+[https://yuanlecheng.github.io/qiniu-pixel-asset-forge/](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/)
+
 ## 功能介绍
 
 ### 文本驱动素材生成
@@ -45,6 +49,12 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 工具支持导出单张 PNG、4 帧精灵表和 JSON 元数据。元数据包含素材名称、类型、动作、尺寸、调色板、seed、帧数和 Unity / Godot / Aseprite 导入建议，可用于衔接主流 2D 游戏开发流程。
 
 ## Quick Start
+
+也可以直接访问在线预览：
+
+```text
+https://yuanlecheng.github.io/qiniu-pixel-asset-forge/
+```
 
 克隆仓库：
 

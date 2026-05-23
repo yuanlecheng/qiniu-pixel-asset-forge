@@ -26,6 +26,28 @@ http://localhost:4173/
 
 也可以直接用浏览器打开 `index.html`。
 
+线上预览地址使用同一份静态代码：
+
+```text
+https://yuanlecheng.github.io/qiniu-pixel-asset-forge/
+```
+
+线上预览和本地页面都支持 URL 参数预设。下面的链接会直接打开“火焰水晶剑，带金色符文”的道具测试用例：
+
+```text
+http://localhost:4173/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&style=fantasy&action=attack
+```
+
+可复现参数包括：
+
+- `prompt`：素材描述。
+- `type`：`character`、`item`、`tile` 或 `ui`。
+- `style`：`arcade`、`fantasy`、`sciFi`、`cozy` 或 `forest`。
+- `action`：`idle`、`run`、`attack` 或 `hit`。
+- `size`：`32`、`64` 或 `128`。
+- `variance`：变化强度。
+- `outline=0` / `shadow=0`：关闭描边或接地阴影。
+
 ## 复现默认素材
 
 保持默认参数：
@@ -56,6 +78,7 @@ http://localhost:4173/
 - 点击“换一版”会改变 seed 偏移，生成同风格变体。
 - 锁定调色板后切换风格不会覆盖当前颜色，便于团队保持统一视觉语言。
 - 质量增强规则也由同一 seed 驱动，包括主体轮廓、高光、裂纹、藤蔓、闪光和语义符号分布。
+- 主体词优先级是确定的：盾牌、剑、弓、钥匙、卷轴、药水、金币等实体词会优先决定主体形状，魔法、符文、火焰、冰霜、水晶等词会叠加为材质或特效线索。
 
 ## 导出验证
 

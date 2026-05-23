@@ -66,12 +66,19 @@ const keywordMap = [
   { tag: "ice", words: ["冰", "霜", "雪", "frost", "ice", "snow"], color: 1 },
   { tag: "fire", words: ["火", "炎", "lava", "fire"], color: 3 },
   { tag: "forest", words: ["森林", "草", "木", "leaf", "forest"], color: 2 },
+  { tag: "stone", words: ["石", "石板", "岩", "stone", "rock", "slab"], detail: "stone" },
+  { tag: "moss", words: ["苔藓", "青苔", "moss"], detail: "moss" },
+  { tag: "crack", words: ["裂纹", "裂缝", "crack", "cracks"], detail: "crack" },
   { tag: "robot", words: ["机器人", "机械", "robot", "mech"], color: 1, detail: "visor" },
   { tag: "crystal", words: ["水晶", "宝石", "crystal", "gem"], shape: "crystal" },
+  { tag: "rune", words: ["符文", "法阵", "魔法阵", "rune", "circle"], shape: "rune" },
   { tag: "magic", words: ["法师", "魔法", "mage", "magic"], shape: "staff" },
   { tag: "blade", words: ["剑", "刀", "sword", "blade"], shape: "blade" },
-  { tag: "shield", words: ["盾", "防御", "shield"], shape: "shield" },
+  { tag: "shield", words: ["盾", "巨盾", "防御", "shield"], shape: "shield" },
+  { tag: "warrior", words: ["战士", "骑士", "勇者", "warrior", "knight"], shape: "blade", detail: "warrior" },
   { tag: "potion", words: ["药", "瓶", "potion"], shape: "potion" },
+  { tag: "key", words: ["钥匙", "key"], shape: "key" },
+  { tag: "scroll", words: ["卷轴", "书卷", "scroll", "book"], shape: "scroll" },
   { tag: "coin", words: ["金币", "钱", "coin"], shape: "coin" },
   { tag: "heart", words: ["血", "心", "health", "heart"], shape: "heart" },
   { tag: "cape", words: ["披风", "斗篷", "cape", "cloak"], detail: "cape" },
@@ -79,6 +86,9 @@ const keywordMap = [
   { tag: "horn", words: ["角", "horn"], detail: "horn" },
   { tag: "archer", words: ["弓", "射手", "archer", "bow"], shape: "bow" },
   { tag: "heavy", words: ["重甲", "巨人", "坦克", "heavy", "giant", "tank"], detail: "heavy" },
+  { tag: "gold", words: ["金色", "黄金", "gold", "golden"], color: 3 },
+  { tag: "blue", words: ["蓝色", "blue"], color: 1 },
+  { tag: "red", words: ["红色", "red"], color: 4 },
 ];
 
 function hashString(input) {
@@ -116,7 +126,9 @@ function analyzePrompt(prompt) {
   const matches = keywordMap.filter((item) => item.words.some((word) => lower.includes(word)));
   const tags = [...new Set(matches.map((item) => item.tag))];
   const colorHint = matches.find((item) => item.color)?.color;
-  const shape = matches.find((item) => item.shape)?.shape || "default";
+  const shapePriority = ["shield", "blade", "bow", "key", "scroll", "staff", "potion", "coin", "heart", "rune", "crystal"];
+  const shapes = matches.map((item) => item.shape).filter(Boolean);
+  const shape = shapePriority.find((candidate) => shapes.includes(candidate)) || "default";
   const details = matches.map((item) => item.detail).filter(Boolean);
   return {
     tags: tags.length ? tags : ["custom"],
@@ -131,6 +143,28 @@ function syncPaletteInputs() {
   controls.colors.forEach((input, index) => {
     if (!controls.paletteLock.checked) input.value = palette[index];
   });
+}
+
+function applyQueryParams() {
+  const params = new URLSearchParams(window.location.search);
+  const mappings = [
+    ["prompt", controls.prompt],
+    ["type", controls.assetType],
+    ["action", controls.actionMode],
+    ["style", controls.stylePreset],
+    ["size", controls.size],
+    ["variance", controls.variance],
+  ];
+
+  mappings.forEach(([key, control]) => {
+    const value = params.get(key);
+    if (!value) return;
+    if (control.tagName === "SELECT" && ![...control.options].some((option) => option.value === value)) return;
+    control.value = value;
+  });
+
+  if (params.get("outline") === "0") controls.outline.checked = false;
+  if (params.get("shadow") === "0") controls.shadow.checked = false;
 }
 
 function readOptions() {
@@ -218,6 +252,35 @@ function drawSparkle(ctx, x, y, color, block = 1) {
   setPixel(ctx, x, y + block, color, block);
 }
 
+function drawSteppedHat(ctx, cx, brimY, unit, dark, accent) {
+  fillPixelRect(ctx, cx - unit * 7, brimY, unit * 14, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - unit * 5, brimY - unit * 3, unit * 10, unit * 3, accent, unit);
+  fillPixelRect(ctx, cx - unit * 3, brimY - unit * 6, unit * 7, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - unit, brimY - unit * 9, unit * 4, unit * 3, accent, unit);
+  setPixel(ctx, cx + unit, brimY - unit * 11, dark, unit * 2);
+}
+
+function drawKiteShield(ctx, cx, cy, width, height, border, fill, accent, block) {
+  const top = cy - height * 0.5;
+  const mid = cy + height * 0.08;
+  const bottom = cy + height * 0.54;
+  drawPixelLine(ctx, cx - width * 0.48, top, cx + width * 0.48, top, border, block);
+  drawPixelLine(ctx, cx - width * 0.48, top, cx - width * 0.42, mid, border, block);
+  drawPixelLine(ctx, cx + width * 0.48, top, cx + width * 0.42, mid, border, block);
+  drawPixelLine(ctx, cx - width * 0.42, mid, cx, bottom, border, block);
+  drawPixelLine(ctx, cx + width * 0.42, mid, cx, bottom, border, block);
+  fillPixelRect(ctx, cx - width * 0.34, top + block, width * 0.68, height * 0.48, fill, block);
+  drawPixelLine(ctx, cx - width * 0.3, mid, cx, bottom - block, fill, block);
+  drawPixelLine(ctx, cx + width * 0.3, mid, cx, bottom - block, shadeColor(fill, -0.22), block);
+  fillPixelRect(ctx, cx - block, top + block * 2, block * 2, height * 0.7, accent, block);
+  fillPixelRect(ctx, cx - width * 0.25, cy - block, width * 0.5, block * 2, accent, block);
+}
+
+function shouldDrawMagicMotifs(profile) {
+  return ["ice", "fire", "crystal", "rune", "magic"].some((tag) => profile.tags.includes(tag))
+    || ["staff", "rune", "crystal"].includes(profile.shape);
+}
+
 function makeDesignRng(options, salt = "") {
   return createRng(hashString(`${options.prompt}|${options.assetType}|${options.stylePreset}|${salt}`));
 }
@@ -257,13 +320,15 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     ? "heavy"
     : options.profile.tags.includes("robot")
       ? "robot"
-      : options.profile.shape === "blade"
-        ? "warrior"
-        : options.profile.shape === "bow"
-          ? "archer"
-          : options.profile.shape === "staff"
-            ? "caster"
-            : pickWeighted(designRng, ["scout", "guardian", "caster"]);
+      : options.profile.shape === "shield"
+        ? "guardian"
+        : options.profile.shape === "blade" || options.profile.details.includes("warrior")
+          ? "warrior"
+          : options.profile.shape === "bow"
+            ? "archer"
+            : options.profile.shape === "staff"
+              ? "caster"
+              : pickWeighted(designRng, ["scout", "guardian", "caster"]);
   const move = motionDelta(options.actionMode, frame, unit);
   const stance = archetype === "heavy" || archetype === "guardian" ? unit * 2 : archetype === "scout" ? -unit : 0;
   const cx = Math.floor(size / 2 + move.x);
@@ -271,6 +336,7 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
   const primary = palette[options.profile.colorHint] || palette[1];
   const accent = palette[3 + Math.floor(rng() * 2)];
   const dark = palette[0];
+  const capeColor = options.profile.details.includes("cape") ? primary : palette[4];
   const primaryLight = shadeColor(primary, 0.28);
   const primaryShade = shadeColor(primary, -0.28);
   const accentLight = shadeColor(accent, 0.26);
@@ -286,8 +352,8 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
 
   if (options.shadow) drawGroundShadow(ctx, size);
   if (options.profile.details.includes("cape") || archetype === "caster") {
-    drawSymmetric(ctx, cx, bodyY + unit * 2, bodyW + unit * 4 + shoulderBonus, bodyH + unit * 5, palette[4], unit);
-    drawSymmetric(ctx, cx + unit, bodyY + bodyH, bodyW + unit * 4, unit * 4, shadeColor(palette[4], -0.28), unit);
+    drawSymmetric(ctx, cx, bodyY + unit * 2, bodyW + unit * 4 + shoulderBonus, bodyH + unit * 5, capeColor, unit);
+    drawSymmetric(ctx, cx + unit, bodyY + bodyH, bodyW + unit * 4, unit * 4, shadeColor(capeColor, -0.28), unit);
   }
   if (options.profile.details.includes("wing")) {
     drawPixelLine(ctx, cx - bodyW - unit * 2, bodyY + unit * 5, cx - bodyW - unit * 10, bodyY - unit * 2, shadeColor(palette[5], -0.08), unit * 2);
@@ -327,13 +393,23 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx - unit * 4, headY, cx - unit * 7, headY - unit * 5, palette[5], unit);
     drawPixelLine(ctx, cx + unit * 4, headY, cx + unit * 7, headY - unit * 5, palette[5], unit);
   }
-  drawSymmetric(ctx, cx, bodyY + unit * 3, bodyW + unit * 4, unit * 2, accent, unit);
+  if (archetype === "caster") {
+    drawSteppedHat(ctx, cx, headY + unit, unit, dark, accent);
+    fillPixelRect(ctx, cx - bodyW, bodyY + unit * 3, bodyW * 2, unit * 2, accent, unit);
+    fillPixelRect(ctx, cx - unit, bodyY + unit * 5, unit * 2, bodyH - unit * 8, shadeColor(accent, 0.16), unit);
+  } else {
+    drawSymmetric(ctx, cx, bodyY + unit * 3, bodyW + unit * 4, unit * 2, accent, unit);
+  }
   drawSymmetric(ctx, cx, bodyY + bodyH, unit * (archetype === "scout" ? 2 : 3), Math.floor(size * 0.16), dark, unit);
   setPixel(ctx, cx - unit * (4 + stance / unit), bodyY + bodyH + unit * (frame % 2), primaryShade, unit * 2);
   setPixel(ctx, cx + unit * (3 + stance / unit), bodyY + bodyH + unit * ((frame + 1) % 2), primaryShade, unit * 2);
 
   const handY = bodyY + unit * 7;
-  if (options.profile.shape === "blade" || archetype === "warrior") {
+  if (options.profile.shape === "shield" || archetype === "guardian") {
+    const shieldW = unit * (archetype === "heavy" ? 15 : 13);
+    const shieldH = unit * (archetype === "heavy" ? 20 : 16);
+    drawKiteShield(ctx, cx - bodyW - unit * 4, handY + unit * 4, shieldW, shieldH, dark, primary, accent, unit);
+  } else if (options.profile.shape === "blade" || archetype === "warrior") {
     drawPixelLine(ctx, cx + bodyW + unit * 2, handY + unit * 5, cx + bodyW + unit * 8 + move.reach, handY - unit * 8, palette[5], unit);
     drawPixelLine(ctx, cx + bodyW + unit * 3, handY + unit * 5, cx + bodyW + unit * 9 + move.reach, handY - unit * 7, shadeColor(palette[5], -0.2), unit);
     fillPixelRect(ctx, cx + bodyW, handY, unit * 6, unit * 2, accent, unit);
@@ -342,19 +418,17 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx + bodyW + unit * 3, handY - unit * 8, cx + bodyW + unit * 8, handY, accent, unit);
     drawPixelLine(ctx, cx + bodyW + unit * 3, handY + unit * 8, cx + bodyW + unit * 8, handY, accent, unit);
     drawPixelLine(ctx, cx + bodyW + unit * 8, handY, cx + bodyW + unit * 13, handY - unit * 2, palette[5], unit);
-  } else if (archetype === "guardian") {
-    drawDiamond(ctx, cx - bodyW - unit * 6, handY + unit * 3, unit * 6, dark, unit);
-    drawDiamond(ctx, cx - bodyW - unit * 6, handY + unit * 3, unit * 4, accent, unit);
   } else {
     fillPixelRect(ctx, cx + bodyW + unit * 4 + move.reach, handY - unit * 5, unit * 2, size * 0.32, dark, unit);
     setPixel(ctx, cx + bodyW + unit * 3 + move.reach, handY - unit * 6, accent, unit * 4);
     setPixel(ctx, cx + bodyW + unit * 4 + move.reach, handY - unit * 5, accentLight, unit * 2);
   }
 
-  for (let i = 0; i < 8 + options.variance; i += 1) {
+  const motifCount = shouldDrawMagicMotifs(options.profile) ? 5 + Math.floor(options.variance / 2) : 1;
+  for (let i = 0; i < motifCount; i += 1) {
     const sparkleX = Math.floor(rng() * size);
     const sparkleY = Math.floor(rng() * size * 0.72);
-    if (rng() > 0.45) drawSparkle(ctx, sparkleX, sparkleY, rng() > 0.45 ? accent : palette[2], unit);
+    if (shouldDrawMagicMotifs(options.profile) && rng() > 0.5) drawSparkle(ctx, sparkleX, sparkleY, rng() > 0.45 ? accent : palette[2], unit);
   }
 
   if (options.profile.tags.includes("ice")) {
@@ -383,7 +457,11 @@ function drawItem(ctx, rng, palette, size, options, frame) {
   const cx = Math.floor(size / 2 + move.x * 0.5);
   const cy = Math.floor(size / 2 + move.y);
   const primary = palette[options.profile.colorHint] || palette[1];
-  const accent = palette[2 + Math.floor(rng() * 3)];
+  const accent = options.profile.tags.includes("fire") || options.profile.tags.includes("gold")
+    ? palette[3]
+    : options.profile.tags.includes("ice") || options.profile.tags.includes("crystal")
+      ? palette[1]
+      : palette[2 + Math.floor(rng() * 3)];
   const dark = palette[0];
   const light = shadeColor(primary, 0.32);
   const shade = shadeColor(primary, -0.3);
@@ -399,17 +477,40 @@ function drawItem(ctx, rng, palette, size, options, frame) {
     fillPixelRect(ctx, cx - radius * 0.42, cy - radius * 0.55, unit * 2, radius * 0.9, light, unit);
     setPixel(ctx, cx + radius * 0.35, cy - radius * 0.2, shadeColor(accent, 0.35), unit * 2);
   } else if (options.profile.shape === "blade") {
-    drawPixelLine(ctx, cx - unit * 2, cy + radius * 1.3, cx + unit * 2, cy - radius * 1.7, shadeColor(palette[5], -0.18), unit);
-    drawPixelLine(ctx, cx - unit, cy + radius * 1.2, cx + unit * 3, cy - radius * 1.6, palette[5], unit);
+    const bladeCore = options.profile.tags.includes("crystal") ? shadeColor(palette[1], 0.62) : palette[5];
+    const bladeShade = options.profile.tags.includes("crystal") ? palette[1] : shadeColor(palette[5], -0.18);
+    drawPixelLine(ctx, cx - unit * 2, cy + radius * 1.3, cx + unit * 2, cy - radius * 1.7, bladeShade, unit);
+    drawPixelLine(ctx, cx - unit, cy + radius * 1.2, cx + unit * 3, cy - radius * 1.6, bladeCore, unit);
     drawPixelLine(ctx, cx + unit, cy + radius * 0.9, cx + unit * 3, cy - radius * 1.2, "#ffffff", unit);
     fillPixelRect(ctx, cx - radius, cy + radius * 0.7, radius * 2, unit * 3, accent, unit);
     fillPixelRect(ctx, cx - unit, cy + radius, unit * 3, radius, dark, unit);
+    if (options.profile.tags.includes("fire")) {
+      setPixel(ctx, cx - radius - unit, cy + radius * 0.55, palette[4], unit * 2);
+      setPixel(ctx, cx + radius - unit, cy + radius * 0.55, palette[3], unit * 2);
+      setPixel(ctx, cx + unit * 3, cy - radius * 1.1, palette[4], unit * 2);
+    }
+    if (options.profile.tags.includes("rune")) {
+      setPixel(ctx, cx, cy - radius * 0.25, palette[3], unit);
+      setPixel(ctx, cx + unit, cy - radius * 0.45, palette[3], unit);
+      setPixel(ctx, cx + unit * 2, cy - radius * 0.65, palette[3], unit);
+    }
   } else if (options.profile.shape === "shield") {
-    drawDiamond(ctx, cx, cy, radius + unit * 4, dark, unit);
-    drawDiamond(ctx, cx, cy, radius + unit * 3, primary, unit);
-    drawDiamond(ctx, cx, cy, radius, accent, unit);
-    fillPixelRect(ctx, cx - unit, cy - radius, unit * 2, radius * 2, palette[5], unit);
-    fillPixelRect(ctx, cx - radius * 0.45, cy - radius * 0.55, unit * 2, radius * 0.8, light, unit);
+    drawKiteShield(ctx, cx, cy, radius * 2.2, radius * 2.8, dark, primary, accent, unit);
+    fillPixelRect(ctx, cx - radius * 0.42, cy - radius * 0.7, unit * 2, radius * 0.72, light, unit);
+  } else if (options.profile.shape === "key") {
+    drawDiamond(ctx, cx - radius * 0.45, cy - radius * 0.28, radius * 0.55, dark, unit);
+    drawDiamond(ctx, cx - radius * 0.45, cy - radius * 0.28, radius * 0.35, accent, unit);
+    ctx.clearRect(cx - radius * 0.58, cy - radius * 0.42, radius * 0.28, radius * 0.28);
+    fillPixelRect(ctx, cx - unit, cy - unit, radius * 1.55, unit * 3, accent, unit);
+    fillPixelRect(ctx, cx + radius * 0.92, cy - unit, unit * 3, unit * 8, dark, unit);
+    fillPixelRect(ctx, cx + radius * 0.66, cy + unit * 2, unit * 5, unit * 2, accent, unit);
+  } else if (options.profile.shape === "scroll") {
+    fillPixelRect(ctx, cx - radius, cy - radius * 0.8, radius * 2, radius * 1.6, palette[5], unit);
+    fillPixelRect(ctx, cx - radius - unit * 2, cy - radius, unit * 4, radius * 2, shadeColor(palette[5], -0.22), unit);
+    fillPixelRect(ctx, cx + radius - unit * 2, cy - radius, unit * 4, radius * 2, shadeColor(palette[5], -0.22), unit);
+    drawPixelLine(ctx, cx - radius * 0.45, cy - unit * 3, cx + radius * 0.45, cy - unit * 3, dark, unit);
+    drawPixelLine(ctx, cx - radius * 0.45, cy + unit, cx + radius * 0.35, cy + unit, accent, unit);
+    drawPixelLine(ctx, cx - radius * 0.45, cy + unit * 4, cx + radius * 0.2, cy + unit * 4, dark, unit);
   } else if (options.profile.shape === "crystal") {
     drawDiamond(ctx, cx, cy, radius + unit * 4, dark, unit);
     drawDiamond(ctx, cx, cy, radius + unit * 3, primary, unit);
@@ -440,7 +541,8 @@ function drawItem(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx + radius, cy - radius, cx - radius, cy + radius, shade, unit);
   }
 
-  for (let i = 0; i < 5 + options.variance; i += 1) {
+  const motifCount = shouldDrawMagicMotifs(options.profile) || options.profile.tags.includes("gold") ? 4 + options.variance : 0;
+  for (let i = 0; i < motifCount; i += 1) {
     const angle = rng() * Math.PI * 2;
     const dist = radius + unit * (2 + Math.floor(rng() * 5));
     if (rng() > 0.25) drawSparkle(ctx, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, accent, unit);
@@ -449,8 +551,10 @@ function drawItem(ctx, rng, palette, size, options, frame) {
 
 function drawTile(ctx, rng, palette, size, options) {
   const unit = Math.max(2, Math.floor(size / 16));
-  const base = options.profile.tags.includes("ice") ? palette[1] : options.profile.tags.includes("fire") ? palette[3] : palette[2];
-  const detail = options.profile.tags.includes("forest") ? palette[5] : palette[3];
+  const isStone = options.profile.tags.includes("stone");
+  const hasMoss = options.profile.tags.includes("moss") || options.profile.tags.includes("forest");
+  const base = isStone ? "#7a827b" : options.profile.tags.includes("ice") ? palette[1] : options.profile.tags.includes("fire") ? palette[3] : palette[2];
+  const detail = hasMoss ? palette[2] : options.profile.tags.includes("forest") ? palette[5] : palette[3];
   const dark = palette[0];
   const baseLight = shadeColor(base, 0.18);
   const baseShade = shadeColor(base, -0.22);
@@ -460,7 +564,7 @@ function drawTile(ctx, rng, palette, size, options) {
   for (let y = 0; y < size; y += unit) {
     for (let x = 0; x < size; x += unit) {
       const noise = rng();
-      if (noise > 0.8 - options.variance * 0.022) setPixel(ctx, x, y, detail, unit);
+      if (noise > 0.8 - options.variance * 0.022) setPixel(ctx, x, y, isStone && hasMoss ? baseLight : detail, unit);
       if (noise > 0.58 && noise < 0.66) setPixel(ctx, x, y, baseLight, unit);
       if (noise < 0.12) setPixel(ctx, x, y, baseShade, unit);
       if (noise < 0.045) setPixel(ctx, x, y, dark, unit);
@@ -473,12 +577,29 @@ function drawTile(ctx, rng, palette, size, options) {
     drawPixelLine(ctx, x, y, x + unit * (2 + Math.floor(rng() * 4)), y + unit * (rng() > 0.5 ? 1 : -1), baseShade, unit);
   }
 
-  if (options.profile.tags.includes("forest")) {
+  if (isStone) {
+    for (let y = unit * 3; y < size; y += unit * 5) {
+      drawPixelLine(ctx, unit, y, size - unit * 2, y + (rng() > 0.5 ? unit : -unit), baseShade, unit);
+    }
+    for (let x = unit * 4; x < size; x += unit * 6) {
+      drawPixelLine(ctx, x, unit, x + (rng() > 0.5 ? unit : -unit), size - unit * 2, baseShade, unit);
+    }
+  }
+
+  if (hasMoss) {
     for (let i = 0; i < 5; i += 1) {
       const x = Math.floor(rng() * size / unit) * unit;
       const y = Math.floor(rng() * size / unit) * unit;
       drawPixelLine(ctx, x, y, x + unit * 3, y + unit * (rng() > 0.5 ? 1 : -1), palette[2], unit);
       setPixel(ctx, x + unit * 3, y, detail, unit);
+    }
+  }
+
+  if (options.profile.tags.includes("crack") || isStone) {
+    for (let i = 0; i < 4; i += 1) {
+      const x = Math.floor(rng() * size / unit) * unit;
+      const y = Math.floor(rng() * size / unit) * unit;
+      drawPixelLine(ctx, x, y, x + unit * (2 + Math.floor(rng() * 3)), y + unit * (1 + Math.floor(rng() * 2)), dark, unit);
     }
   }
 
@@ -543,15 +664,30 @@ function drawUiIcon(ctx, rng, palette, size, options, frame) {
     drawDiamond(ctx, size / 2, size / 2, size * 0.15 + frame * unit * 0.4, palette[3], unit);
     drawPixelLine(ctx, size * 0.44, size * 0.42, size * 0.58, size * 0.58, shadeColor(palette[3], 0.38), unit);
   } else if (options.profile.shape === "shield") {
-    drawDiamond(ctx, size / 2, size / 2, size * 0.17, dark, unit);
-    drawDiamond(ctx, size / 2, size / 2, size * 0.14, accent, unit);
-    fillPixelRect(ctx, size / 2 - unit, size * 0.38, unit * 2, size * 0.23, "#ffffff", unit);
+    drawKiteShield(ctx, size / 2, size / 2, size * 0.3, size * 0.38, dark, accent, "#ffffff", unit);
+  } else if (options.profile.shape === "key") {
+    drawDiamond(ctx, size * 0.43, size * 0.45, size * 0.1, dark, unit);
+    drawDiamond(ctx, size * 0.43, size * 0.45, size * 0.07, palette[3], unit);
+    ctx.clearRect(size * 0.4, size * 0.42, size * 0.05, size * 0.05);
+    fillPixelRect(ctx, size * 0.48, size * 0.47, size * 0.18, unit * 3, palette[3], unit);
+    fillPixelRect(ctx, size * 0.62, size * 0.47, unit * 3, size * 0.12, dark, unit);
+  } else if (options.profile.shape === "scroll") {
+    fillPixelRect(ctx, size * 0.34, size * 0.34, size * 0.32, size * 0.3, palette[5], unit);
+    fillPixelRect(ctx, size * 0.3, size * 0.32, unit * 4, size * 0.34, shadeColor(palette[5], -0.18), unit);
+    fillPixelRect(ctx, size * 0.64, size * 0.32, unit * 4, size * 0.34, shadeColor(palette[5], -0.18), unit);
+    drawPixelLine(ctx, size * 0.4, size * 0.43, size * 0.58, size * 0.43, dark, unit);
+    drawPixelLine(ctx, size * 0.4, size * 0.51, size * 0.56, size * 0.51, accent, unit);
   } else if (options.profile.shape === "blade") {
     drawPixelLine(ctx, size * 0.4, size * 0.66, size * 0.62, size * 0.34, "#ffffff", unit * 2);
     fillPixelRect(ctx, size * 0.36, size * 0.64, size * 0.28, unit * 3, accent, unit);
-  } else if (options.profile.shape === "staff") {
+  } else if (options.profile.shape === "staff" || options.profile.shape === "rune") {
     drawPixelLine(ctx, size * 0.42, size * 0.66, size * 0.58, size * 0.34, dark, unit * 2);
     drawSparkle(ctx, size * 0.6, size * 0.32, accent, unit * 2);
+    if (options.profile.shape === "rune") {
+      drawDiamond(ctx, size / 2, size / 2, size * 0.22, dark, unit);
+      drawDiamond(ctx, size / 2, size / 2, size * 0.18, accent, unit);
+      ctx.clearRect(size * 0.44, size * 0.44, size * 0.12, size * 0.12);
+    }
   } else if (defaultSymbol === "ring") {
     drawDiamond(ctx, size / 2, size / 2, size * 0.2, dark, unit);
     drawDiamond(ctx, size / 2, size / 2, size * 0.15, accent, unit);
@@ -886,6 +1022,7 @@ Object.entries(controls).forEach(([key, control]) => {
   if (key !== "colors" && control instanceof HTMLElement) control.addEventListener("input", renderAll);
 });
 
+applyQueryParams();
 syncPaletteInputs();
 renderAll();
 renderLibrary();

@@ -36,6 +36,7 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 生成器会在基础形状之上叠加多层像素美术规则：
 
 - 提示词轮廓：让主体比例、头部形状、装备结构和图标符号随描述变化。
+- 主体词优先：盾牌、剑、弓、钥匙、卷轴、金币、药水等实体词会优先决定素材主体，魔法、符文、火焰、冰霜等词作为材质和特效层叠加。
 - 方向性高光：通过亮部和暗部提升体积感。
 - 材质细节：为药水、盾牌、剑、水晶、地块等增加切面、裂纹和纹理。
 - 语义装饰：根据提示词生成冰晶、藤蔓、熔岩、魔法闪光等细节。
@@ -81,6 +82,14 @@ python -m http.server 4173
 http://localhost:4173/
 ```
 
+在线预览和本地页面都支持 URL 参数预设，便于分享或复现某组输入。例如：
+
+```text
+https://yuanlecheng.github.io/qiniu-pixel-asset-forge/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&style=fantasy&action=attack
+```
+
+常用参数包括 `prompt`、`type`、`style`、`action`、`size`、`variance`、`outline=0` 和 `shadow=0`。
+
 ## 操作教程
 
 ### 1. 启动工具
@@ -99,7 +108,10 @@ http://localhost:4173/
 
 ```text
 火焰水晶剑，带金色符文
+重甲战士，巨盾，金色披风
+机器人弓手，银色装甲，红色 visor
 森林石板地块，带青苔和裂纹
+古代魔法卷轴，带符文
 金币 UI 图标，适合像素 RPG 背包
 ```
 

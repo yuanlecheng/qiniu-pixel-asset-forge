@@ -112,6 +112,11 @@
           <button id="downloadSheetBtn" type="button">精灵表</button>
           <button id="downloadMetaBtn" type="button">JSON</button>
         </div>
+
+        <div class="button-row">
+          <button id="saveLibraryBtn" type="button">保存到素材库</button>
+          <button id="downloadLibraryBtn" type="button">导出清单</button>
+        </div>
       </aside>
 
       <section class="workbench" aria-label="素材预览">
@@ -215,6 +220,19 @@
           <div>
             <h3>提示词解析</h3>
             <p id="promptTags">ice, mage, cape</p>
+          </div>
+        </section>
+
+        <section class="library-panel" aria-label="项目素材库">
+          <div class="section-head">
+            <div>
+              <h3>项目素材库</h3>
+              <span id="libraryCount">0 assets</span>
+            </div>
+            <button id="clearLibraryBtn" type="button">清空</button>
+          </div>
+          <div class="library-grid" id="libraryGrid">
+            <p class="empty-state">保存满意的生成结果，形成可导出的项目素材清单。</p>
           </div>
         </section>
 

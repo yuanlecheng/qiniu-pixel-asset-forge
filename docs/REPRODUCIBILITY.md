@@ -46,6 +46,7 @@ http://localhost:4173/
 - 4 帧动作帧。
 - 4 个风格一致变体。
 - JSON 元数据，其中包含 `seed`、`palette`、`frames`、`importSettings.workflow`。
+- 项目素材库区域，初始状态为空。
 
 ## 结果可复现机制
 
@@ -63,6 +64,18 @@ http://localhost:4173/
 2. 点击 `精灵表`，应下载 4 列横向 sprite sheet。
 3. 点击 `JSON`，应下载导入元数据。
 4. 点击 `复制`，应将元数据写入剪贴板。
+5. 点击 `保存到素材库`，当前素材应出现在项目素材库中。
+6. 点击 `导出清单`，应下载 `pixel_asset_forge_manifest.json`。
+
+## 素材库 manifest
+
+素材库 manifest 用于复现和整理一组候选资产。每个条目包含：
+
+- 素材名称、类型、动作和尺寸。
+- 原始提示词和解析标签。
+- seed 与调色板。
+- 建议文件名。
+- Unity / Godot / Aseprite 导入设置。
 
 ## 语法检查
 

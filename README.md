@@ -15,6 +15,7 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 - 调色板预览、自定义与锁定，便于保持项目内资产风格一致
 - 像素描边、接地阴影、变体预览和元数据预览
 - PNG、精灵表、JSON 元数据导出
+- 项目素材库，可保存多张生成结果并导出 manifest 清单
 - Unity / Godot / Aseprite 导入建议
 - 零运行时依赖，可离线运行
 
@@ -52,7 +53,8 @@ http://localhost:4173/
 3. 根据项目视觉规范调整或锁定调色板。
 4. 点击“生成”或“换一版”查看主图、动作帧和风格一致变体。
 5. 导出单张 PNG、四帧精灵表或 JSON 元数据。
-6. 按页面中的工具链建议导入 Unity、Godot 或 Aseprite。
+6. 将满意的结果保存到项目素材库，导出素材 manifest 清单。
+7. 按页面中的工具链建议导入 Unity、Godot 或 Aseprite。
 
 ## Reproducibility
 
@@ -97,6 +99,8 @@ GitHub Actions 会在 push 和 pull request 时执行同样的 JavaScript 语法
 Pixel Asset Forge 当前版本以 Canvas 程序化生成作为 MVP 基线，优先保证低成本、可复现、可离线运行和易于演示。它关注常规 2D 游戏开发中的四类高频资产：角色、道具、地图地块和 UI 图标。
 
 导出的 JSON 元数据包含素材名称、类型、动作、尺寸、调色板、seed、帧数和导入建议，可作为后续接入 Unity `.meta`、Godot `.tres`、Aseprite 文件或素材包打包流程的基础。
+
+项目素材库用于收集当前会话中的候选素材。manifest 清单记录每个素材的名称、提示词、类型、动作、风格、seed、调色板和导入设置，适合提交给后续关卡编辑、引擎导入或素材包整理流程。
 
 ## Demo
 

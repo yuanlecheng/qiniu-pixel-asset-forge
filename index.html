@@ -22,6 +22,21 @@
           <textarea id="prompt" rows="4" maxlength="180">冰霜法师，蓝色披风，适合横版冒险游戏</textarea>
         </label>
 
+        <section class="demo-panel" aria-label="高质量演示案例">
+          <div class="mini-section-head">
+            <span>快速演示</span>
+            <strong>一键查看代表性生成效果</strong>
+          </div>
+          <div class="demo-grid">
+            <button type="button" data-demo="hero">英雄角色</button>
+            <button type="button" data-demo="enemy">敌方单位</button>
+            <button type="button" data-demo="weapon">装备道具</button>
+            <button type="button" data-demo="tile">地图地块</button>
+            <button type="button" data-demo="ui">技能图标</button>
+            <button type="button" data-demo="pack">完整素材包</button>
+          </div>
+        </section>
+
         <div class="grid-two">
           <label class="field">
             <span>素材类型</span>
@@ -117,6 +132,8 @@
           <button id="saveLibraryBtn" type="button">保存到素材库</button>
           <button id="downloadLibraryBtn" type="button">导出清单</button>
         </div>
+
+        <button id="generatePackBtn" class="secondary-action" type="button">生成一套项目素材包</button>
       </aside>
 
       <section class="workbench" aria-label="素材预览">
@@ -152,12 +169,20 @@
                 <dt>导入建议</dt>
                 <dd id="importHint">Point Filter / No Compression</dd>
               </div>
+              <div>
+                <dt>语义匹配</dt>
+                <dd><span id="matchScore" class="score-badge">--</span></dd>
+              </div>
+              <div>
+                <dt>生成依据</dt>
+                <dd id="semanticSummary">等待生成</dd>
+              </div>
             </dl>
             <div class="quality-grid" aria-label="质量指标">
-              <span>透明 PNG</span>
-              <span>4 帧动作</span>
-              <span>稳定种子</span>
-              <span>工具链元数据</span>
+              <span id="qualityPng">透明 PNG</span>
+              <span id="qualityFrames">4 帧动作</span>
+              <span id="qualitySeed">稳定种子</span>
+              <span id="qualityMeta">工具链元数据</span>
             </div>
           </aside>
         </section>

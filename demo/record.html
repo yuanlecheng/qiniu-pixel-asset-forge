@@ -8,7 +8,7 @@
         margin: 0;
         background: #0f172a;
         color: #fff;
-        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
       }
 
       canvas {
@@ -18,8 +18,10 @@
       #output {
         position: fixed;
         inset: auto 0 0;
-        max-height: 40vh;
+        max-height: 34vh;
         overflow: auto;
+        padding: 12px;
+        background: rgba(15, 23, 42, 0.92);
         white-space: pre-wrap;
         word-break: break-all;
       }
@@ -31,52 +33,96 @@
     <script>
       const slides = [
         {
+          chapter: "01 项目定位",
           image: "../docs/assets/preview-main.png",
           title: "Pixel Asset Forge",
-          subtitle: "文本驱动的 2D 游戏像素素材生成工具",
-          note: "在线预览 / 零依赖运行 / PNG / 精灵表 / JSON 元数据",
-          bullets: ["浏览器端静态应用", "输入提示词即可生成", "支持角色、道具、地块、UI", "适合 Game Jam 与课程项目"],
+          subtitle: "面向 2D 游戏原型的文本驱动像素素材生成器",
+          caption: "从一句游戏素材描述出发，生成角色、敌人、道具、地块、UI 与动作帧，并保留可复现的参数。",
+          note: "在线预览 / 零依赖静态应用 / PNG 导出 / 精灵表 / JSON 元数据",
+          prompt: "crystal knight / crown / cape",
+          bullets: ["浏览器端直接运行", "提示词解析与视觉规则生成", "适合 Game Jam 与课程项目", "源码、文档、Demo 均可公开复现"],
+          focus: { x: 0.05, y: 0.11, w: 0.9, h: 0.78 },
+          cursor: { from: [0.16, 0.82], to: [0.44, 0.43] },
         },
         {
+          chapter: "02 文本生成",
           image: "../docs/assets/example-hero.png",
-          title: "角色、动作帧与变体",
-          subtitle: "同一提示词生成主预览、4 帧动作和稳定变体",
+          title: "提示词可解释",
+          subtitle: "职业、材质、颜色、装备与特效会被拆解成可视化规则",
+          caption: "Demo 展示的是核心能力：不是固定模板换色，而是根据游戏语义组合主体、轮廓、装饰和光效。",
           note: "示例：royal crystal knight with tiny crown and blue cape",
-          bullets: ["解析职业与装备", "生成攻击动作帧", "保留 seed 可复现", "展示解析完整度"],
+          prompt: "crystal knight / crown / blue cape / idle + attack",
+          bullets: ["角色轮廓与装备同步变化", "颜色和材质影响像素高光", "可生成待机、行走、攻击帧", "seed 可记录，方便结果复现"],
+          focus: { x: 0.43, y: 0.13, w: 0.44, h: 0.53 },
+          cursor: { from: [0.22, 0.78], to: [0.63, 0.39] },
         },
         {
+          chapter: "03 道具主体",
           image: "../docs/assets/example-skull-key.png",
-          title: "道具主体与语义装饰",
-          subtitle: "组合词优先保留核心主体，再叠加符号细节",
+          title: "主体优先保真",
+          subtitle: "先锁定道具类型，再叠加 skull、glow、emerald 等语义装饰",
+          caption: "对于道具类素材，生成逻辑优先保证“key”等主体可识别，再添加纹样、宝石、光效和透明导出。",
           note: "示例：emerald skull key with green glow",
-          bullets: ["key 保持道具主体", "skull 作为语义装饰", "glow 生成特效", "可导出透明 PNG"],
+          prompt: "emerald skull key / green glow / transparent PNG",
+          bullets: ["key 保持清晰主体", "skull 作为装饰语义", "glow 生成外轮廓特效", "适合背包、掉落物和任务物品"],
+          focus: { x: 0.38, y: 0.14, w: 0.5, h: 0.56 },
+          cursor: { from: [0.19, 0.75], to: [0.62, 0.43] },
         },
         {
+          chapter: "04 敌人与生物",
           image: "../docs/assets/example-slime.png",
-          title: "非人形敌方单位",
-          subtitle: "支持 slime、ghost、bat、dragon 等常见游戏轮廓",
+          title: "非人形单位",
+          subtitle: "slime、ghost、bat、dragon 等常见游戏轮廓不再被压成人形模板",
+          caption: "敌人素材会根据关键词切换基础轮廓，并把 crown、poison、trail 等细节叠加到对应位置。",
           note: "示例：green slime enemy with tiny crown",
-          bullets: ["不再固定为人形模板", "皇冠、毒液、风痕等细节可组合", "适合横版和 RPG 原型", "动作帧同步生成"],
+          prompt: "green slime enemy / tiny crown / bounce animation",
+          bullets: ["生物轮廓随提示词变化", "表情、皇冠、毒液等局部可组合", "动作帧与主体结构同步", "适合横版、RPG 与塔防原型"],
+          focus: { x: 0.39, y: 0.13, w: 0.48, h: 0.55 },
+          cursor: { from: [0.18, 0.8], to: [0.62, 0.44] },
         },
         {
+          chapter: "05 一键素材包",
           image: "../docs/assets/preview-pack.png",
-          title: "一键项目素材包",
-          subtitle: "快速生成角色、敌人、道具、地块和 UI 候选素材",
-          note: "点击“生成一套项目素材包”后，素材库自动收集 9 个可导出条目",
-          bullets: ["素材库缩略图", "manifest 清单导出", "Unity / Godot / Aseprite 建议", "适合提交与复现"],
+          title: "项目素材包",
+          subtitle: "一次生成角色、敌人、道具、地块、UI 候选素材",
+          caption: "素材库自动收集缩略图、分类、提示词和导出清单，让评审能看到完整工作流，而不是单张图片演示。",
+          note: "点击“生成一套项目素材包”后，素材库自动整理 9 个可导出条目",
+          prompt: "starter pack / hero / enemy / props / tiles / UI",
+          bullets: ["素材库缩略图统一管理", "manifest 清单可导出", "Unity / Godot / Aseprite 建议", "覆盖游戏原型常用资产类型"],
+          focus: { x: 0.1, y: 0.5, w: 0.8, h: 0.38 },
+          cursor: { from: [0.18, 0.2], to: [0.5, 0.7] },
         },
         {
+          chapter: "06 导出复现",
           image: "../docs/assets/preview-main.png",
-          title: "开源可复现交付",
-          subtitle: "源码、在线预览、Demo、复现文档和提交自检齐备",
+          title: "开放交付",
+          subtitle: "导出 PNG、精灵表与 JSON 元数据，保留提示词、seed 和生成配置",
+          caption: "项目以开源仓库形式提交，评审或其他开发者可以克隆、运行、复现、修改并重新导出素材。",
+          note: "README / REPRODUCIBILITY / SUBMISSION_CHECKLIST / CI 自检",
+          prompt: "export spritesheet + metadata + reproducibility guide",
+          bullets: ["无后端服务依赖", "无 npm 安装步骤", "静态页面即可部署", "MIT License，适合作为开源项目继续迭代"],
+          focus: { x: 0.58, y: 0.12, w: 0.34, h: 0.66 },
+          cursor: { from: [0.24, 0.82], to: [0.75, 0.28] },
+        },
+        {
+          chapter: "07 在线提交材料",
+          image: "../docs/assets/preview-pack.png",
+          title: "可直接评审",
+          subtitle: "在线预览、Demo 视频、源码仓库和复现文档形成完整闭环",
+          caption: "评审打开 Demo 页即可看到项目价值；打开在线工具即可实际生成；打开仓库即可检查源码与提交材料。",
           note: "https://yuanlecheng.github.io/qiniu-pixel-asset-forge/",
-          bullets: ["无 npm 安装步骤", "无后端服务", "CI 校验关键文件", "MIT License 开源"],
+          prompt: "online preview + demo + source + reproducible project",
+          bullets: ["在线预览地址已公开", "Demo 视频展示关键功能", "源码与 Pages 内容同步", "作品提交规则相关材料已补齐"],
+          focus: { x: 0.06, y: 0.08, w: 0.88, h: 0.84 },
+          cursor: { from: [0.19, 0.78], to: [0.52, 0.46] },
         },
       ];
 
       const canvas = document.querySelector("#stage");
       const ctx = canvas.getContext("2d");
       const output = document.querySelector("#output");
+      const width = canvas.width;
+      const height = canvas.height;
 
       function wait(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -86,95 +132,203 @@
         return new Promise((resolve, reject) => {
           const image = new Image();
           image.onload = () => resolve(image);
-          image.onerror = reject;
+          image.onerror = () => reject(new Error(`无法加载图片：${src}`));
           image.src = src;
         });
       }
 
-      function roundedRect(x, y, width, height, radius) {
+      function ease(value) {
+        return value < 0.5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
+      }
+
+      function roundedRect(x, y, rectWidth, rectHeight, radius) {
+        const r = Math.min(radius, rectWidth / 2, rectHeight / 2);
         ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + width, y, x + width, y + height, radius);
-        ctx.arcTo(x + width, y + height, x, y + height, radius);
-        ctx.arcTo(x, y + height, x, y, radius);
-        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + rectWidth, y, x + rectWidth, y + rectHeight, r);
+        ctx.arcTo(x + rectWidth, y + rectHeight, x, y + rectHeight, r);
+        ctx.arcTo(x, y + rectHeight, x, y, r);
+        ctx.arcTo(x, y, x + rectWidth, y, r);
         ctx.closePath();
       }
 
-      function wrapText(text, x, y, maxWidth, lineHeight) {
+      function wrapText(text, x, y, maxWidth, lineHeight, maxLines = 4) {
+        const chars = Array.from(text);
         let line = "";
-        text.split(" ").forEach((word) => {
-          const next = line ? `${line} ${word}` : word;
-          if (ctx.measureText(next).width > maxWidth) {
+        let lineCount = 0;
+        for (const char of chars) {
+          const next = line + char;
+          if (ctx.measureText(next).width > maxWidth && line) {
             ctx.fillText(line, x, y);
-            line = word;
             y += lineHeight;
+            line = char.trimStart();
+            lineCount += 1;
+            if (lineCount >= maxLines - 1) break;
           } else {
             line = next;
           }
-        });
-        if (line) ctx.fillText(line, x, y);
-        return y;
+        }
+        if (line && lineCount < maxLines) ctx.fillText(line, x, y);
+        return y + lineHeight;
       }
 
-      function drawSlide(slide, image, progress, phase) {
-        const width = canvas.width;
-        const height = canvas.height;
-        ctx.fillStyle = "#eaf1f7";
+      function drawCoverImage(image, x, y, boxWidth, boxHeight) {
+        const imageRatio = image.width / image.height;
+        const boxRatio = boxWidth / boxHeight;
+        let sourceX = 0;
+        let sourceY = 0;
+        let sourceW = image.width;
+        let sourceH = image.height;
+        if (imageRatio > boxRatio) {
+          sourceW = image.height * boxRatio;
+          sourceX = (image.width - sourceW) / 2;
+        } else {
+          sourceH = image.width / boxRatio;
+          sourceY = (image.height - sourceH) / 2;
+        }
+        ctx.drawImage(image, sourceX, sourceY, sourceW, sourceH, x, y, boxWidth, boxHeight);
+      }
+
+      function drawCursor(x, y, pulse) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, 32);
+        ctx.lineTo(9, 25);
+        ctx.lineTo(16, 43);
+        ctx.lineTo(25, 39);
+        ctx.lineTo(18, 21);
+        ctx.lineTo(30, 21);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        if (pulse > 0.62) {
+          const radius = 18 + Math.sin((pulse - 0.62) * Math.PI * 5) * 7;
+          ctx.globalAlpha = 0.28;
+          ctx.strokeStyle = "#2563eb";
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(6, 8, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawSlide(slide, image, overallProgress, phase, slideIndex) {
+        ctx.fillStyle = "#edf2f7";
         ctx.fillRect(0, 0, width, height);
 
         ctx.fillStyle = "#ffffff";
-        roundedRect(34, 34, 1212, 652, 20);
-        ctx.fill();
-
-        const imageW = 730;
-        const imageH = 506;
-        const imageX = 486;
-        const imageY = 118;
-        ctx.save();
-        roundedRect(imageX - 10, imageY - 10, imageW + 20, imageH + 20, 16);
-        ctx.fillStyle = "#ffffff";
+        roundedRect(32, 32, 1216, 656, 18);
         ctx.fill();
         ctx.strokeStyle = "#d7e0ea";
         ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.clip();
-        const zoom = 1 + Math.sin(phase * Math.PI) * 0.018;
-        const drawW = imageW * zoom;
-        const drawH = imageH * zoom;
-        ctx.drawImage(image, imageX - (drawW - imageW) / 2, imageY - (drawH - imageH) / 2, drawW, drawH);
-        ctx.restore();
+
+        const leftX = 70;
+        const imageX = 496;
+        const imageY = 104;
+        const imageW = 720;
+        const imageH = 476;
 
         ctx.fillStyle = "#0f172a";
-        ctx.font = "800 48px Segoe UI, Microsoft YaHei, sans-serif";
-        ctx.fillText(slide.title, 70, 128);
+        roundedRect(leftX, 72, 146, 34, 17);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "700 17px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        ctx.fillText(slide.chapter, leftX + 18, 95);
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "800 42px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        wrapText(slide.title, leftX, 154, 392, 48, 2);
 
         ctx.fillStyle = "#2563eb";
-        ctx.font = "700 25px Segoe UI, Microsoft YaHei, sans-serif";
-        wrapText(slide.subtitle, 72, 180, 360, 34);
+        ctx.font = "700 24px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        wrapText(slide.subtitle, leftX, 226, 372, 34, 3);
 
         ctx.fillStyle = "#334155";
-        ctx.font = "22px Segoe UI, Microsoft YaHei, sans-serif";
-        wrapText(slide.note, 72, 272, 360, 32);
+        ctx.font = "21px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        wrapText(slide.note, leftX, 326, 372, 30, 3);
+
+        ctx.fillStyle = "#f8fafc";
+        roundedRect(leftX, 404, 374, 58, 12);
+        ctx.fill();
+        ctx.strokeStyle = "#d7e0ea";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = "#64748b";
+        ctx.font = "700 15px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        ctx.fillText("Prompt", leftX + 18, 426);
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "700 16px Consolas, Segoe UI, Microsoft YaHei, sans-serif";
+        wrapText(slide.prompt, leftX + 18, 450, 334, 22, 2);
 
         slide.bullets.forEach((text, index) => {
-          const itemY = 392 + index * 48;
+          const itemY = 492 + index * 34;
           ctx.fillStyle = "#15936b";
-          roundedRect(74, itemY - 25, 28, 28, 7);
+          roundedRect(leftX, itemY - 21, 24, 24, 7);
           ctx.fill();
           ctx.fillStyle = "#ffffff";
-          ctx.font = "700 19px Segoe UI, Microsoft YaHei, sans-serif";
-          ctx.fillText("✓", 80, itemY - 4);
+          ctx.font = "800 16px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+          ctx.fillText("✓", leftX + 6, itemY - 3);
           ctx.fillStyle = "#101827";
-          ctx.font = "700 23px Segoe UI, Microsoft YaHei, sans-serif";
-          ctx.fillText(text, 120, itemY);
+          ctx.font = "700 19px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+          wrapText(text, leftX + 36, itemY, 330, 24, 1);
         });
 
-        ctx.fillStyle = "#d7e0ea";
-        roundedRect(70, 650, 1140, 10, 5);
+        ctx.save();
+        roundedRect(imageX - 12, imageY - 12, imageW + 24, imageH + 24, 16);
+        ctx.fillStyle = "#ffffff";
         ctx.fill();
-        ctx.fillStyle = "#2563eb";
-        roundedRect(70, 650, 1140 * progress, 10, 5);
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.clip();
+        const zoom = 1 + Math.sin(phase * Math.PI) * 0.018;
+        drawCoverImage(
+          image,
+          imageX - (imageW * zoom - imageW) / 2,
+          imageY - (imageH * zoom - imageH) / 2,
+          imageW * zoom,
+          imageH * zoom,
+        );
+        ctx.restore();
+
+        const focus = slide.focus;
+        const fx = imageX + focus.x * imageW;
+        const fy = imageY + focus.y * imageH;
+        const fw = focus.w * imageW;
+        const fh = focus.h * imageH;
+        ctx.fillStyle = "rgba(37, 99, 235, 0.1)";
+        roundedRect(fx, fy, fw, fh, 12);
+        ctx.fill();
+        ctx.strokeStyle = "#2563eb";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        const pointerT = ease(Math.min(1, Math.max(0, (phase - 0.14) / 0.62)));
+        const [sx, sy] = slide.cursor.from;
+        const [ex, ey] = slide.cursor.to;
+        const cx = imageX + (sx + (ex - sx) * pointerT) * imageW;
+        const cy = imageY + (sy + (ey - sy) * pointerT) * imageH;
+        drawCursor(cx, cy, phase);
+
+        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+        roundedRect(82, 608, 1116, 50, 13);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "700 20px Segoe UI, PingFang SC, Microsoft YaHei, sans-serif";
+        wrapText(slide.caption, 106, 640, 1068, 24, 1);
+
+        ctx.fillStyle = "#d7e0ea";
+        roundedRect(82, 670, 1116, 9, 5);
+        ctx.fill();
+        ctx.fillStyle = slideIndex % 2 === 0 ? "#2563eb" : "#15936b";
+        roundedRect(82, 670, 1116 * overallProgress, 9, 5);
         ctx.fill();
       }
 
@@ -182,23 +336,26 @@
         const images = await Promise.all(slides.map((slide) => loadImage(slide.image)));
         const stream = canvas.captureStream(24);
         const chunks = [];
-        const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8" });
+        const recorder = new MediaRecorder(stream, {
+          mimeType: "video/webm;codecs=vp8",
+          videoBitsPerSecond: 4200000,
+        });
         recorder.ondataavailable = (event) => {
           if (event.data.size) chunks.push(event.data);
         };
-        recorder.start();
+        recorder.start(1000);
 
-        const framesPerSlide = 84;
+        const framesPerSlide = 94;
         for (let slideIndex = 0; slideIndex < slides.length; slideIndex += 1) {
           for (let frame = 0; frame < framesPerSlide; frame += 1) {
             const phase = frame / framesPerSlide;
-            const progress = (slideIndex + phase) / slides.length;
-            drawSlide(slides[slideIndex], images[slideIndex], progress, phase);
+            const overallProgress = (slideIndex + phase) / slides.length;
+            drawSlide(slides[slideIndex], images[slideIndex], overallProgress, phase, slideIndex);
             await wait(1000 / 24);
           }
         }
-        drawSlide(slides[slides.length - 1], images[images.length - 1], 1, 1);
-        await wait(300);
+        drawSlide(slides[slides.length - 1], images[images.length - 1], 1, 1, slides.length - 1);
+        await wait(500);
         recorder.stop();
         await new Promise((resolve) => {
           recorder.onstop = resolve;
@@ -206,9 +363,9 @@
         const blob = new Blob(chunks, { type: "video/webm" });
         const bytes = new Uint8Array(await blob.arrayBuffer());
         let binary = "";
-        bytes.forEach((byte) => {
-          binary += String.fromCharCode(byte);
-        });
+        for (let i = 0; i < bytes.length; i += 1) {
+          binary += String.fromCharCode(bytes[i]);
+        }
         output.textContent = `WEBM_BASE64:${btoa(binary)}`;
       }
 

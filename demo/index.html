@@ -8,7 +8,7 @@
       :root {
         color-scheme: light;
         --ink: #0f172a;
-        --muted: #64748b;
+        --muted: #5f6f86;
         --line: #d7e0ea;
         --blue: #2563eb;
         --green: #15936b;
@@ -29,10 +29,10 @@
 
       main {
         display: grid;
-        gap: 20px;
-        width: min(1120px, calc(100% - 32px));
+        gap: 22px;
+        width: min(1160px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 32px 0;
+        padding: 34px 0;
       }
 
       header,
@@ -40,27 +40,46 @@
         border: 1px solid var(--line);
         border-radius: 10px;
         background: var(--surface);
-        padding: 22px;
+        padding: 24px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+        gap: 22px;
+        align-items: center;
       }
 
       h1,
       h2,
+      h3,
       p {
         margin: 0;
       }
 
       h1 {
-        font-size: clamp(28px, 4vw, 46px);
+        max-width: 760px;
+        font-size: clamp(30px, 4vw, 48px);
         line-height: 1.08;
       }
 
       h2 {
-        font-size: 20px;
+        font-size: 22px;
+      }
+
+      h3 {
+        font-size: 17px;
       }
 
       p {
         color: var(--muted);
-        line-height: 1.65;
+        line-height: 1.68;
+      }
+
+      .lead {
+        margin-top: 12px;
+        max-width: 760px;
+        font-size: 17px;
       }
 
       video {
@@ -75,7 +94,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        margin-top: 18px;
+        margin-top: 20px;
       }
 
       a {
@@ -86,12 +105,12 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 40px;
+        min-height: 42px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        padding: 0 14px;
+        padding: 0 15px;
         text-decoration: none;
-        font-weight: 700;
+        font-weight: 800;
       }
 
       .primary {
@@ -100,25 +119,59 @@
         color: #fff;
       }
 
-      .grid {
+      .metric-grid,
+      .chapter-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
       }
 
-      .card {
+      .metric-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .chapter-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .metric,
+      .chapter {
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 14px;
       }
 
-      .card strong {
+      .metric strong {
         display: block;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
+        font-size: 20px;
       }
 
-      @media (max-width: 760px) {
-        .grid {
+      .chapter span {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        background: #eef6ff;
+        color: var(--blue);
+        padding: 0 10px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .section-title {
+        margin-bottom: 14px;
+      }
+
+      .repo-note {
+        border-left: 4px solid var(--green);
+        padding-left: 14px;
+      }
+
+      @media (max-width: 880px) {
+        .hero,
+        .metric-grid,
+        .chapter-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -126,13 +179,32 @@
   </head>
   <body>
     <main>
-      <header>
-        <h1>Pixel Asset Forge Demo</h1>
-        <p>这个演示展示了项目的完整评审路径：文本生成、动作帧、语义解析、一键素材包、素材库与导出工作流。</p>
-        <div class="actions">
-          <a class="button primary" href="../">打开在线工具</a>
-          <a class="button" href="./demo.webm">下载 Demo 视频</a>
-          <a class="button" href="../docs/DEMO_SCRIPT.md">查看讲解脚本</a>
+      <header class="hero">
+        <div>
+          <h1>Pixel Asset Forge Demo</h1>
+          <p class="lead">
+            该演示展示项目的完整评审路径：文本生成、语义解析、动作帧、非人形敌人、一键项目素材包、导出清单与开源复现文档。
+          </p>
+          <div class="actions">
+            <a class="button primary" href="../">打开在线工具</a>
+            <a class="button" href="./demo.webm">下载 Demo 视频</a>
+            <a class="button" href="../docs/DEMO_SCRIPT.md">查看讲解脚本</a>
+            <a class="button" href="https://github.com/yuanlecheng/qiniu-pixel-asset-forge">查看源码仓库</a>
+          </div>
+        </div>
+        <div class="metric-grid" aria-label="项目交付概览">
+          <div class="metric">
+            <strong>0 依赖</strong>
+            <p>克隆仓库后可直接打开静态页面运行。</p>
+          </div>
+          <div class="metric">
+            <strong>9 类素材</strong>
+            <p>角色、敌人、道具、地块、UI 与精灵表。</p>
+          </div>
+          <div class="metric">
+            <strong>可复现</strong>
+            <p>保留提示词、seed、参数与导出元数据。</p>
+          </div>
         </div>
       </header>
 
@@ -143,19 +215,37 @@
         </video>
       </section>
 
-      <section class="grid">
-        <div class="card">
-          <strong>展示内容</strong>
-          <p>角色、道具、敌方单位、动作帧、变体、一键素材包和工具链元数据。</p>
+      <section>
+        <h2 class="section-title">视频内容</h2>
+        <div class="chapter-grid">
+          <div class="chapter">
+            <span>01 项目定位</span>
+            <h3>文本驱动的 2D 像素素材生成器</h3>
+            <p>说明项目面向游戏原型和课程作品的实际使用场景。</p>
+          </div>
+          <div class="chapter">
+            <span>02 文本生成</span>
+            <h3>提示词解析与视觉规则</h3>
+            <p>展示角色、材质、装备、颜色与动作帧的联动。</p>
+          </div>
+          <div class="chapter">
+            <span>03-04 类型覆盖</span>
+            <h3>道具、敌人与非人形单位</h3>
+            <p>强调主体识别、装饰语义与常见游戏轮廓覆盖。</p>
+          </div>
+          <div class="chapter">
+            <span>05-07 交付闭环</span>
+            <h3>素材包、导出与开源复现</h3>
+            <p>呈现素材库、manifest、在线预览、源码与提交文档。</p>
+          </div>
         </div>
-        <div class="card">
-          <strong>复现方式</strong>
-          <p>项目无后端、无 npm 依赖，克隆仓库后可直接打开 index.html 或启动静态服务。</p>
-        </div>
-        <div class="card">
-          <strong>提交材料</strong>
-          <p>仓库包含 README、Demo、复现文档、提交自检清单、许可证和 CI 检查。</p>
-        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">评审入口</h2>
+        <p class="repo-note">
+          Demo 视频用于快速了解项目完成度；在线工具用于实际体验生成质量；源码仓库用于检查实现、提交材料和复现步骤。
+        </p>
       </section>
     </main>
   </body>

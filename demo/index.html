@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Asset Forge Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #d7e0ea;
+        --blue: #2563eb;
+        --green: #15936b;
+        --surface: #ffffff;
+        --page: #edf2f7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      main {
+        display: grid;
+        gap: 20px;
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0;
+      }
+
+      header,
+      section {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        padding: 22px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(28px, 4vw, 46px);
+        line-height: 1.08;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      video {
+        display: block;
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #0f172a;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0 14px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .primary {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Pixel Asset Forge Demo</h1>
+        <p>这个演示展示了项目的完整评审路径：文本生成、动作帧、语义解析、一键素材包、素材库与导出工作流。</p>
+        <div class="actions">
+          <a class="button primary" href="../">打开在线工具</a>
+          <a class="button" href="./demo.webm">下载 Demo 视频</a>
+          <a class="button" href="../docs/DEMO_SCRIPT.md">查看讲解脚本</a>
+        </div>
+      </header>
+
+      <section>
+        <video controls preload="metadata" poster="../docs/assets/preview-main.png">
+          <source src="./demo.webm" type="video/webm" />
+          当前浏览器不支持 WebM 播放，请下载 demo.webm 查看。
+        </video>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <strong>展示内容</strong>
+          <p>角色、道具、敌方单位、动作帧、变体、一键素材包和工具链元数据。</p>
+        </div>
+        <div class="card">
+          <strong>复现方式</strong>
+          <p>项目无后端、无 npm 依赖，克隆仓库后可直接打开 index.html 或启动静态服务。</p>
+        </div>
+        <div class="card">
+          <strong>提交材料</strong>
+          <p>仓库包含 README、Demo、复现文档、提交自检清单、许可证和 CI 检查。</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

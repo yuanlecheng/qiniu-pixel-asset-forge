@@ -1,6 +1,6 @@
 # Demo 讲解脚本
 
-本脚本用于录制正式讲解版 Demo 视频。仓库已提供无声演示视频：[`demo/demo.webm`](../demo/demo.webm)。
+本脚本用于录制正式讲解版 Demo 视频。仓库已提供可播放展示页：[`demo/index.html`](../demo/index.html)，以及无声演示视频：[`demo/demo.webm`](../demo/demo.webm)。
 
 ## 建议时长
 

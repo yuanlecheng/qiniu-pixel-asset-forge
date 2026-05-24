@@ -2,7 +2,7 @@
 
 > 浏览器端 2D 像素游戏素材生成工具：输入文本描述，生成角色、敌人、道具、地图地块和 UI 图标，并导出 PNG、4 帧精灵表与可复现 JSON 元数据。
 
-[在线预览](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/) · [Demo 视频](./demo/demo.webm) · [复现文档](./docs/REPRODUCIBILITY.md) · [提交自检](./SUBMISSION_CHECKLIST.md)
+[在线预览](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/) · [Demo 展示页](./demo/) · [复现文档](./docs/REPRODUCIBILITY.md) · [提交自检](./SUBMISSION_CHECKLIST.md)
 
 ![Pixel Asset Forge 在线预览](./docs/assets/preview-main.png)
 
@@ -243,7 +243,9 @@ Pixel Asset Forge 当前版本以 Canvas 程序化生成作为 MVP 基线，优�
 
 ## Demo
 
-可播放演示视频：[`demo/demo.webm`](./demo/demo.webm)。线上访问地址：`https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/demo.webm`。
+可播放演示页面：[`demo/index.html`](./demo/index.html)。线上访问地址：`https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/`。
+
+视频文件：[`demo/demo.webm`](./demo/demo.webm)。
 
 正式讲解版录制脚本见 [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md)。视频建议上传至 bilibili、网盘或其他公开平台后，将外部链接补充到本节；当前仓库内置 WebM 版本可直接通过 GitHub 或 GitHub Pages 访问。
 

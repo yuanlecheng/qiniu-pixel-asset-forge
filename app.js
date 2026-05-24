@@ -63,8 +63,8 @@ const actionNames = {
 };
 
 const keywordMap = [
-  { tag: "ice", words: ["冰", "霜", "雪", "frost", "ice", "snow"], color: 1 },
-  { tag: "fire", words: ["火", "炎", "lava", "fire"], color: 3 },
+  { tag: "ice", words: ["冰", "霜", "雪", "frost", "ice", "icy", "frozen", "snow"], color: 1 },
+  { tag: "fire", words: ["火", "炎", "lava", "molten", "fire"], color: 3 },
   { tag: "forest", words: ["森林", "草", "木", "leaf", "forest"], color: 2 },
   { tag: "water", words: ["水", "海", "河", "water", "sea", "river"], color: 1, detail: "water" },
   { tag: "sand", words: ["沙", "沙漠", "desert", "sand"], color: 3, detail: "sand" },
@@ -75,6 +75,11 @@ const keywordMap = [
   { tag: "stone", words: ["石", "石板", "岩", "stone", "rock", "slab"], detail: "stone" },
   { tag: "moss", words: ["苔藓", "青苔", "moss"], detail: "moss" },
   { tag: "crack", words: ["裂纹", "裂缝", "crack", "cracks"], detail: "crack" },
+  { tag: "slime", words: ["史莱姆", "黏液", "slime", "gel", "blob", "ooze"], color: 2, detail: "slime" },
+  { tag: "ghost", words: ["幽灵", "魂", "ghost", "spirit", "phantom", "wraith"], color: 1, detail: "ghost" },
+  { tag: "bat", words: ["蝙蝠", "bat"], color: 4, detail: "bat" },
+  { tag: "orc", words: ["兽人", "orc"], color: 2, detail: "orc" },
+  { tag: "mushroom", words: ["蘑菇", "mushroom", "fungus"], color: 2, detail: "mushroom" },
   { tag: "robot", words: ["机器人", "机械", "robot", "mech"], color: 1, detail: "visor" },
   { tag: "crystal", words: ["水晶", "宝石", "crystal", "gem"], shape: "crystal" },
   { tag: "rune", words: ["符文", "法阵", "魔法阵", "rune", "circle"], shape: "rune" },
@@ -97,10 +102,18 @@ const keywordMap = [
   { tag: "arrow", words: ["箭", "arrow"], shape: "arrow" },
   { tag: "coin", words: ["金币", "钱", "coin"], shape: "coin" },
   { tag: "heart", words: ["血", "心", "health", "heart"], shape: "heart" },
+  { tag: "skull", words: ["骷髅", "骨", "死亡", "危险", "skull", "bones", "death", "danger"], shape: "skull", detail: "skull" },
+  { tag: "star", words: ["星", "法力", "技能", "star", "mana", "spell", "nova"], shape: "star", detail: "mana" },
+  { tag: "helmet", words: ["头盔", "helmet", "helm"], shape: "helmet", detail: "armor" },
+  { tag: "boots", words: ["靴", "鞋", "boots", "boot", "shoes"], shape: "boots" },
+  { tag: "lantern", words: ["灯笼", "提灯", "lantern", "lamp"], shape: "lantern", detail: "lantern" },
+  { tag: "glow", words: ["发光", "微光", "glow", "glowing", "light"], detail: "glow" },
+  { tag: "crown", words: ["皇冠", "王冠", "crown", "royal", "king", "queen"], detail: "crown" },
+  { tag: "wind", words: ["风", "速度", "迅捷", "wind", "speed", "swift", "haste"], detail: "wind" },
   { tag: "cape", words: ["披风", "斗篷", "cape", "cloak"], detail: "cape" },
   { tag: "wing", words: ["翅膀", "翼", "wing"], detail: "wing" },
   { tag: "horn", words: ["角", "horn"], detail: "horn" },
-  { tag: "dragon", words: ["龙", "dragon", "wyrm"], detail: "wing" },
+  { tag: "dragon", words: ["龙", "幼龙", "dragon", "wyrm", "hatchling"], color: 2, detail: "dragon" },
   { tag: "demon", words: ["恶魔", "demon", "devil"], color: 4, detail: "horn" },
   { tag: "archer", words: ["弓", "射手", "archer", "bow"], shape: "bow" },
   { tag: "heavy", words: ["重甲", "巨人", "坦克", "heavy", "giant", "tank"], detail: "heavy" },
@@ -152,8 +165,8 @@ function analyzePrompt(prompt, assetType = "character") {
   const colorHint = explicitColor?.color ?? matches.find((item) => item.color !== undefined)?.color;
   const shapePriorityByType = {
     character: ["shield", "bow", "staff", "blade", "axe", "spear", "hammer"],
-    item: ["shield", "axe", "spear", "hammer", "blade", "bow", "arrow", "key", "chest", "book", "scroll", "potion", "coin", "ring", "bomb", "heart", "rune", "crystal"],
-    ui: ["heart", "coin", "shield", "blade", "bow", "arrow", "key", "book", "scroll", "potion", "ring", "bomb", "staff", "rune", "crystal"],
+    item: ["helmet", "boots", "lantern", "key", "skull", "star", "shield", "axe", "spear", "hammer", "blade", "bow", "arrow", "chest", "book", "scroll", "potion", "coin", "ring", "bomb", "heart", "rune", "crystal"],
+    ui: ["skull", "star", "heart", "coin", "shield", "blade", "bow", "arrow", "key", "book", "scroll", "potion", "ring", "bomb", "staff", "rune", "crystal"],
     tile: ["default"],
   };
   const shapePriority = shapePriorityByType[assetType] || shapePriorityByType.character;
@@ -308,8 +321,10 @@ function drawKiteShield(ctx, cx, cy, width, height, border, fill, accent, block)
 }
 
 function shouldDrawMagicMotifs(profile) {
-  return ["ice", "fire", "crystal", "rune", "magic", "healer", "poison", "shadow"].some((tag) => profile.tags.includes(tag))
-    || ["staff", "rune", "crystal"].includes(profile.shape);
+  return ["ice", "fire", "crystal", "rune", "magic", "healer", "poison", "shadow", "star"].some((tag) => profile.tags.includes(tag))
+    || ["staff", "rune", "crystal", "star"].includes(profile.shape)
+    || profile.details.includes("mana")
+    || profile.details.includes("glow");
 }
 
 function makeDesignRng(options, salt = "") {
@@ -344,8 +359,194 @@ function motionDelta(action, frame, unit) {
   return { x: 0, y: cycle, reach: unit };
 }
 
+function drawCrown(ctx, cx, baseY, unit, dark, gold) {
+  fillPixelRect(ctx, cx - unit * 6, baseY - unit * 2, unit * 12, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - unit * 5, baseY - unit * 4, unit * 3, unit * 3, gold, unit);
+  fillPixelRect(ctx, cx - unit, baseY - unit * 7, unit * 3, unit * 6, gold, unit);
+  fillPixelRect(ctx, cx + unit * 3, baseY - unit * 4, unit * 3, unit * 3, gold, unit);
+  setPixel(ctx, cx - unit * 4, baseY - unit * 5, "#ffffff", unit);
+  setPixel(ctx, cx, baseY - unit * 8, "#ffffff", unit);
+  setPixel(ctx, cx + unit * 4, baseY - unit * 5, "#ffffff", unit);
+}
+
+function drawSkullSymbol(ctx, cx, cy, unit, bone, dark) {
+  drawDiamond(ctx, cx, cy - unit * 2, unit * 8, dark, unit);
+  drawDiamond(ctx, cx, cy - unit * 2, unit * 6, bone, unit);
+  fillPixelRect(ctx, cx - unit * 5, cy + unit * 3, unit * 10, unit * 5, bone, unit);
+  fillPixelRect(ctx, cx - unit * 4, cy - unit * 3, unit * 3, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx + unit, cy - unit * 3, unit * 3, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - unit, cy, unit * 2, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx - unit * 4, cy + unit * 6, unit * 2, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx + unit * 2, cy + unit * 6, unit * 2, unit * 3, dark, unit);
+}
+
+function drawStarSymbol(ctx, cx, cy, unit, fill, dark) {
+  drawSparkle(ctx, cx, cy, dark, unit * 3);
+  drawDiamond(ctx, cx, cy, unit * 5, fill, unit);
+  drawPixelLine(ctx, cx, cy - unit * 9, cx, cy + unit * 9, fill, unit * 2);
+  drawPixelLine(ctx, cx - unit * 9, cy, cx + unit * 9, cy, fill, unit * 2);
+  setPixel(ctx, cx - unit * 2, cy - unit * 2, "#ffffff", unit * 2);
+}
+
+function drawWindStreaks(ctx, cx, cy, unit, color) {
+  drawPixelLine(ctx, cx - unit * 14, cy - unit * 4, cx - unit * 5, cy - unit * 6, color, unit);
+  drawPixelLine(ctx, cx + unit * 5, cy - unit * 7, cx + unit * 14, cy - unit * 8, color, unit);
+  drawPixelLine(ctx, cx - unit * 10, cy + unit * 6, cx + unit * 4, cy + unit * 4, color, unit);
+}
+
+function drawLanternShape(ctx, cx, cy, unit, dark, glass, metal, glow) {
+  fillPixelRect(ctx, cx - unit * 4, cy - unit * 8, unit * 8, unit * 3, metal, unit);
+  drawPixelLine(ctx, cx - unit * 3, cy - unit * 8, cx, cy - unit * 12, dark, unit);
+  drawPixelLine(ctx, cx + unit * 3, cy - unit * 8, cx, cy - unit * 12, dark, unit);
+  fillPixelRect(ctx, cx - unit * 7, cy - unit * 5, unit * 14, unit * 16, dark, unit);
+  fillPixelRect(ctx, cx - unit * 5, cy - unit * 3, unit * 10, unit * 12, glass, unit);
+  fillPixelRect(ctx, cx - unit * 2, cy, unit * 4, unit * 6, glow, unit);
+  fillPixelRect(ctx, cx - unit * 6, cy + unit * 10, unit * 12, unit * 3, metal, unit);
+}
+
+function drawSlimeCharacter(ctx, rng, palette, size, options, frame, unit) {
+  const move = motionDelta(options.actionMode, frame, unit);
+  const cx = Math.floor(size / 2 + move.x);
+  const cy = Math.floor(size * 0.58 + move.y);
+  const primary = palette[options.profile.colorHint] || palette[2];
+  const dark = palette[0];
+  const shade = shadeColor(primary, -0.28);
+  const light = shadeColor(primary, 0.36);
+  const accent = palette[3];
+
+  if (options.shadow) drawGroundShadow(ctx, size);
+  drawSymmetric(ctx, cx, cy - unit * 7, unit * 9, unit * 8, shade, unit);
+  drawSymmetric(ctx, cx, cy - unit * 11, unit * 7, unit * 8, primary, unit);
+  drawSymmetric(ctx, cx, cy - unit * 15, unit * 4, unit * 5, light, unit);
+  fillPixelRect(ctx, cx - unit * 12, cy, unit * 24, unit * 4, shade, unit);
+  fillPixelRect(ctx, cx - unit * 5, cy - unit * 11, unit * 2, unit * 3, dark, unit);
+  fillPixelRect(ctx, cx + unit * 3, cy - unit * 11, unit * 2, unit * 3, dark, unit);
+  drawPixelLine(ctx, cx - unit * 3, cy - unit * 5, cx + unit * 4, cy - unit * 5, dark, unit);
+  setPixel(ctx, cx - unit * 5, cy - unit * 16, "#ffffff", unit * 2);
+  if (options.profile.details.includes("crown")) drawCrown(ctx, cx, cy - unit * 15, unit, dark, palette[3]);
+  if (options.profile.details.includes("toxic")) {
+    setPixel(ctx, cx - unit * 12, cy - unit * 8, palette[2], unit * 2);
+    setPixel(ctx, cx + unit * 10, cy - unit * 4, palette[2], unit * 2);
+  }
+  if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, cy, unit, light);
+  for (let i = 0; i < 2 + Math.floor(options.variance / 3); i += 1) {
+    setPixel(ctx, cx - unit * 9 + rng() * unit * 18, cy - unit * 9 + rng() * unit * 7, shadeColor(primary, 0.18), unit);
+  }
+  if (options.actionMode === "attack") drawSparkle(ctx, cx + unit * 14, cy - unit * 8, accent, unit);
+}
+
+function drawGhostCharacter(ctx, rng, palette, size, options, frame, unit) {
+  const move = motionDelta(options.actionMode, frame, unit);
+  const cx = Math.floor(size / 2 + move.x);
+  const top = Math.floor(size * 0.2 + move.y);
+  const primary = shadeColor(palette[options.profile.colorHint] || palette[1], 0.38);
+  const dark = palette[0];
+  const shade = shadeColor(primary, -0.22);
+  const accent = palette[3];
+
+  if (options.shadow) drawGroundShadow(ctx, size);
+  drawSymmetric(ctx, cx, top + unit * 6, unit * 8, unit * 18, shade, unit);
+  drawSymmetric(ctx, cx, top + unit * 4, unit * 6, unit * 8, primary, unit);
+  drawSymmetric(ctx, cx, top + unit * 14, unit * 10, unit * 13, primary, unit);
+  fillPixelRect(ctx, cx - unit * 10, top + unit * 25, unit * 5, unit * 4, primary, unit);
+  fillPixelRect(ctx, cx - unit * 2, top + unit * 25, unit * 5, unit * 6, shade, unit);
+  fillPixelRect(ctx, cx + unit * 6, top + unit * 25, unit * 5, unit * 4, primary, unit);
+  fillPixelRect(ctx, cx - unit * 5, top + unit * 12, unit * 2, unit * 4, dark, unit);
+  fillPixelRect(ctx, cx + unit * 3, top + unit * 12, unit * 2, unit * 4, dark, unit);
+  fillPixelRect(ctx, cx - unit * 2, top + unit * 18, unit * 4, unit * 2, dark, unit);
+  if (options.profile.details.includes("lantern") || options.profile.details.includes("glow") || options.profile.shape === "lantern") {
+    drawLanternShape(ctx, cx + unit * 14, top + unit * 20, unit, dark, shadeColor(palette[3], 0.36), palette[5], accent);
+    drawSparkle(ctx, cx + unit * 17, top + unit * 20, accent, unit);
+  }
+  if (options.profile.details.includes("skull")) drawSkullSymbol(ctx, cx, top + unit * 17, Math.max(1, unit * 0.7), palette[5], dark);
+  if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, top + unit * 20, unit, shadeColor(primary, 0.2));
+  if (rng() > 0.35) drawSparkle(ctx, cx - unit * 14, top + unit * 10, primary, unit);
+}
+
+function drawBatCharacter(ctx, rng, palette, size, options, frame, unit) {
+  const move = motionDelta(options.actionMode, frame, unit);
+  const cx = Math.floor(size / 2 + move.x);
+  const cy = Math.floor(size * 0.48 + move.y);
+  const primary = palette[options.profile.colorHint] || palette[4];
+  const dark = palette[0];
+  const shade = shadeColor(primary, -0.32);
+  const light = shadeColor(primary, 0.22);
+
+  if (options.shadow) drawGroundShadow(ctx, size);
+  drawPixelLine(ctx, cx - unit * 4, cy, cx - unit * 18, cy - unit * (frame % 2 ? 8 : 4), dark, unit * 2);
+  drawPixelLine(ctx, cx - unit * 4, cy + unit * 2, cx - unit * 20, cy + unit * 8, shade, unit * 2);
+  drawPixelLine(ctx, cx + unit * 4, cy, cx + unit * 18, cy - unit * (frame % 2 ? 8 : 4), dark, unit * 2);
+  drawPixelLine(ctx, cx + unit * 4, cy + unit * 2, cx + unit * 20, cy + unit * 8, shade, unit * 2);
+  drawSymmetric(ctx, cx, cy - unit * 5, unit * 5, unit * 13, primary, unit);
+  drawDiamond(ctx, cx, cy - unit * 7, unit * 6, dark, unit);
+  drawDiamond(ctx, cx, cy - unit * 7, unit * 4, primary, unit);
+  fillPixelRect(ctx, cx - unit * 4, cy - unit * 13, unit * 2, unit * 5, dark, unit);
+  fillPixelRect(ctx, cx + unit * 2, cy - unit * 13, unit * 2, unit * 5, dark, unit);
+  setPixel(ctx, cx - unit * 3, cy - unit * 7, palette[3], unit);
+  setPixel(ctx, cx + unit * 2, cy - unit * 7, palette[3], unit);
+  if (options.profile.details.includes("horn")) {
+    drawPixelLine(ctx, cx - unit * 4, cy - unit * 12, cx - unit * 7, cy - unit * 16, palette[5], unit);
+    drawPixelLine(ctx, cx + unit * 4, cy - unit * 12, cx + unit * 7, cy - unit * 16, palette[5], unit);
+  }
+  if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, cy, unit, light);
+  if (rng() > 0.45) drawSparkle(ctx, cx + unit * 16, cy - unit * 12, light, unit);
+}
+
+function drawDragonCharacter(ctx, rng, palette, size, options, frame, unit) {
+  const move = motionDelta(options.actionMode, frame, unit);
+  const cx = Math.floor(size / 2 + move.x);
+  const cy = Math.floor(size * 0.52 + move.y);
+  const primary = palette[options.profile.colorHint] || palette[2];
+  const dark = palette[0];
+  const shade = shadeColor(primary, -0.3);
+  const light = shadeColor(primary, 0.26);
+  const accent = options.profile.tags.includes("fire") ? palette[3] : palette[4];
+
+  if (options.shadow) drawGroundShadow(ctx, size);
+  drawPixelLine(ctx, cx - unit * 7, cy - unit * 3, cx - unit * 20, cy - unit * (frame % 2 ? 12 : 7), dark, unit * 2);
+  drawPixelLine(ctx, cx - unit * 6, cy, cx - unit * 18, cy + unit * 8, shade, unit * 2);
+  drawPixelLine(ctx, cx + unit * 7, cy - unit * 3, cx + unit * 20, cy - unit * (frame % 2 ? 12 : 7), dark, unit * 2);
+  drawPixelLine(ctx, cx + unit * 6, cy, cx + unit * 18, cy + unit * 8, shade, unit * 2);
+  drawSymmetric(ctx, cx, cy - unit * 3, unit * 8, unit * 14, primary, unit);
+  drawSymmetric(ctx, cx + unit * 3, cy + unit * 7, unit * 7, unit * 7, shade, unit);
+  drawPixelLine(ctx, cx + unit * 8, cy + unit * 9, cx + unit * 17, cy + unit * 4, shade, unit * 2);
+  drawDiamond(ctx, cx, cy - unit * 10, unit * 8, dark, unit);
+  drawDiamond(ctx, cx, cy - unit * 10, unit * 6, primary, unit);
+  drawPixelLine(ctx, cx - unit * 4, cy - unit * 15, cx - unit * 8, cy - unit * 20, palette[5], unit);
+  drawPixelLine(ctx, cx + unit * 4, cy - unit * 15, cx + unit * 8, cy - unit * 20, palette[5], unit);
+  fillPixelRect(ctx, cx - unit * 4, cy - unit * 11, unit * 2, unit * 2, dark, unit);
+  fillPixelRect(ctx, cx + unit * 2, cy - unit * 11, unit * 2, unit * 2, dark, unit);
+  drawPixelLine(ctx, cx - unit * 3, cy - unit * 5, cx + unit * 4, cy - unit * 5, dark, unit);
+  for (let i = 0; i < 4; i += 1) {
+    setPixel(ctx, cx - unit * 5 + i * unit * 3, cy - unit * 2 + i * unit, light, unit);
+  }
+  if (options.profile.tags.includes("fire") || options.actionMode === "attack") {
+    drawSparkle(ctx, cx + unit * 13 + move.reach, cy - unit * 11, accent, unit * 2);
+    setPixel(ctx, cx + unit * 16 + move.reach, cy - unit * 10, palette[3], unit * 2);
+  }
+  if (options.profile.details.includes("crown")) drawCrown(ctx, cx, cy - unit * 16, unit, dark, palette[3]);
+  if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, cy, unit, light);
+  if (rng() > 0.42) drawSparkle(ctx, cx - unit * 15, cy - unit * 12, light, unit);
+}
+
 function drawCharacter(ctx, rng, palette, size, options, frame) {
   const unit = Math.max(1, Math.floor(size / 32));
+  if (options.profile.details.includes("slime")) {
+    drawSlimeCharacter(ctx, rng, palette, size, options, frame, unit);
+    return;
+  }
+  if (options.profile.details.includes("ghost")) {
+    drawGhostCharacter(ctx, rng, palette, size, options, frame, unit);
+    return;
+  }
+  if (options.profile.details.includes("bat")) {
+    drawBatCharacter(ctx, rng, palette, size, options, frame, unit);
+    return;
+  }
+  if (options.profile.details.includes("dragon")) {
+    drawDragonCharacter(ctx, rng, palette, size, options, frame, unit);
+    return;
+  }
   const designRng = makeDesignRng(options, "character-silhouette");
   const archetype = options.profile.details.includes("heavy")
     ? "heavy"
@@ -365,7 +566,7 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
   const move = motionDelta(options.actionMode, frame, unit);
   const stance = archetype === "heavy" || archetype === "guardian" ? unit * 2 : archetype === "scout" ? -unit : 0;
   const cx = Math.floor(size / 2 + move.x);
-  const skin = palette[5];
+  const skin = options.profile.details.includes("orc") ? shadeColor(palette[2], 0.12) : palette[5];
   const primary = palette[options.profile.colorHint] || palette[1];
   const accent = palette[3 + Math.floor(rng() * 2)];
   const dark = palette[0];
@@ -426,13 +627,27 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     drawPixelLine(ctx, cx - unit * 4, headY, cx - unit * 7, headY - unit * 5, palette[5], unit);
     drawPixelLine(ctx, cx + unit * 4, headY, cx + unit * 7, headY - unit * 5, palette[5], unit);
   }
+  if (options.profile.details.includes("orc")) {
+    fillPixelRect(ctx, cx - unit * 7, headY + unit * 7, unit * 3, unit * 2, palette[5], unit);
+    fillPixelRect(ctx, cx + unit * 4, headY + unit * 7, unit * 3, unit * 2, palette[5], unit);
+    setPixel(ctx, cx - unit * 5, headY + unit * 4, shadeColor(palette[2], -0.25), unit * 2);
+    setPixel(ctx, cx + unit * 3, headY + unit * 4, shadeColor(palette[2], -0.25), unit * 2);
+  }
+  if (options.profile.details.includes("crown")) drawCrown(ctx, cx, headY, unit, dark, palette[3]);
   if (options.profile.details.includes("healer")) {
     setPixel(ctx, cx - unit * 4, bodyY + unit * 4, palette[5], unit * 2);
     fillPixelRect(ctx, cx - unit, bodyY + unit * 2, unit * 2, unit * 8, palette[5], unit);
     fillPixelRect(ctx, cx - unit * 4, bodyY + unit * 5, unit * 8, unit * 2, palette[5], unit);
   }
   if (archetype === "caster") {
-    drawSteppedHat(ctx, cx, headY + unit, unit, dark, accent);
+    if (options.profile.details.includes("mushroom")) {
+      drawSymmetric(ctx, cx, headY - unit * 3, unit * 9, unit * 8, accent, unit);
+      fillPixelRect(ctx, cx - unit * 8, headY + unit, unit * 16, unit * 4, dark, unit);
+      fillPixelRect(ctx, cx - unit * 6, headY - unit, unit * 4, unit * 3, palette[5], unit);
+      fillPixelRect(ctx, cx + unit * 3, headY - unit * 2, unit * 3, unit * 3, palette[5], unit);
+    } else {
+      drawSteppedHat(ctx, cx, headY + unit, unit, dark, accent);
+    }
     fillPixelRect(ctx, cx - bodyW, bodyY + unit * 3, bodyW * 2, unit * 2, accent, unit);
     fillPixelRect(ctx, cx - unit, bodyY + unit * 5, unit * 2, bodyH - unit * 8, shadeColor(accent, 0.16), unit);
   } else {
@@ -468,6 +683,11 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     setPixel(ctx, cx + bodyW + unit * 3 + move.reach, handY - unit * 6, accent, unit * 4);
     setPixel(ctx, cx + bodyW + unit * 4 + move.reach, handY - unit * 5, accentLight, unit * 2);
   }
+  if (options.profile.details.includes("lantern")) {
+    drawPixelLine(ctx, cx - bodyW - unit * 4, handY + unit * 2, cx - bodyW - unit * 8, handY + unit * 9, dark, unit);
+    drawLanternShape(ctx, cx - bodyW - unit * 9, handY + unit * 14, Math.max(1, Math.floor(unit * 0.8)), dark, shadeColor(palette[3], 0.36), palette[5], palette[3]);
+  }
+  if (options.profile.details.includes("glow")) drawSparkle(ctx, cx + bodyW + unit * 10, handY - unit * 8, accentLight, unit * 2);
 
   const motifCount = shouldDrawMagicMotifs(options.profile) ? 5 + Math.floor(options.variance / 2) : 1;
   for (let i = 0; i < motifCount; i += 1) {
@@ -484,6 +704,7 @@ function drawCharacter(ctx, rng, palette, size, options, frame) {
     setPixel(ctx, cx - unit * 2, bodyY - unit * 5, palette[3], unit * 2);
     setPixel(ctx, cx, bodyY - unit * 7, accentLight, unit * 2);
   }
+  if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, bodyY + unit * 10, unit, shadeColor(palette[1], 0.28));
 }
 
 function drawDiamond(ctx, cx, cy, radius, color, block) {
@@ -514,7 +735,35 @@ function drawItem(ctx, rng, palette, size, options, frame) {
 
   if (options.shadow) drawGroundShadow(ctx, size);
 
-  if (options.profile.shape === "potion") {
+  if (options.profile.shape === "helmet") {
+    fillPixelRect(ctx, cx - radius * 1.05, cy - radius * 0.52, radius * 2.1, radius * 1.08, dark, unit);
+    drawSymmetric(ctx, cx, cy - radius * 0.95, radius * 0.86, radius * 0.72, primary, unit);
+    fillPixelRect(ctx, cx - radius, cy - radius * 0.34, radius * 2, radius * 0.78, shade, unit);
+    fillPixelRect(ctx, cx - radius * 0.56, cy - radius * 0.12, radius * 1.12, unit * 4, dark, unit);
+    fillPixelRect(ctx, cx - unit, cy - radius * 0.86, unit * 2, radius * 1.18, light, unit);
+    if (options.profile.details.includes("crown")) drawCrown(ctx, cx, cy - radius * 0.9, unit, dark, palette[3]);
+  } else if (options.profile.shape === "boots") {
+    fillPixelRect(ctx, cx - radius * 1.08, cy - radius * 0.7, radius * 0.72, radius * 1.25, dark, unit);
+    fillPixelRect(ctx, cx + radius * 0.18, cy - radius * 0.7, radius * 0.72, radius * 1.25, dark, unit);
+    fillPixelRect(ctx, cx - radius * 0.94, cy - radius * 0.54, radius * 0.48, radius * 0.96, primary, unit);
+    fillPixelRect(ctx, cx + radius * 0.32, cy - radius * 0.54, radius * 0.48, radius * 0.96, primary, unit);
+    fillPixelRect(ctx, cx - radius * 1.12, cy + radius * 0.36, radius * 0.96, unit * 5, shade, unit);
+    fillPixelRect(ctx, cx + radius * 0.08, cy + radius * 0.36, radius * 0.96, unit * 5, shade, unit);
+    fillPixelRect(ctx, cx - radius * 0.82, cy - radius * 0.22, radius * 0.32, unit * 3, accent, unit);
+    fillPixelRect(ctx, cx + radius * 0.44, cy - radius * 0.22, radius * 0.32, unit * 3, accent, unit);
+    if (options.profile.details.includes("wind")) drawWindStreaks(ctx, cx, cy, unit, shadeColor(palette[1], 0.34));
+  } else if (options.profile.shape === "lantern") {
+    if (options.profile.details.includes("lantern") || options.profile.details.includes("glow")) {
+      drawDiamond(ctx, cx, cy + unit, radius * 1.25, shadeColor(palette[3], 0.34), unit);
+    }
+    drawLanternShape(ctx, cx, cy, unit, dark, shadeColor(primary, 0.36), palette[5], accent);
+  } else if (options.profile.shape === "skull") {
+    drawSkullSymbol(ctx, cx, cy, unit, palette[5], dark);
+    if (options.profile.tags.includes("poison")) drawSparkle(ctx, cx + radius * 0.82, cy - radius * 0.65, palette[2], unit * 2);
+  } else if (options.profile.shape === "star") {
+    if (options.profile.details.includes("mana")) drawDiamond(ctx, cx, cy, radius * 1.1, shadeColor(palette[1], 0.22), unit);
+    drawStarSymbol(ctx, cx, cy, unit, options.profile.details.includes("mana") ? palette[1] : accent, dark);
+  } else if (options.profile.shape === "potion") {
     fillPixelRect(ctx, cx - radius * 0.82, cy - radius, radius * 1.64, radius * 1.85, shade, unit);
     fillPixelRect(ctx, cx - radius * 0.68, cy - radius + unit, radius * 1.2, radius * 1.55, primary, unit);
     fillPixelRect(ctx, cx - radius * 0.35, cy - radius * 1.45, radius * 0.7, radius * 0.55, palette[5], unit);
@@ -578,6 +827,7 @@ function drawItem(ctx, rng, palette, size, options, frame) {
     fillPixelRect(ctx, cx - unit, cy - unit, radius * 1.55, unit * 3, accent, unit);
     fillPixelRect(ctx, cx + radius * 0.92, cy - unit, unit * 3, unit * 8, dark, unit);
     fillPixelRect(ctx, cx + radius * 0.66, cy + unit * 2, unit * 5, unit * 2, accent, unit);
+    if (options.profile.details.includes("skull")) drawSkullSymbol(ctx, cx - radius * 0.48, cy - radius * 0.32, Math.max(1, Math.floor(unit * 0.62)), palette[5], dark);
   } else if (options.profile.shape === "scroll") {
     fillPixelRect(ctx, cx - radius, cy - radius * 0.8, radius * 2, radius * 1.6, palette[5], unit);
     fillPixelRect(ctx, cx - radius - unit * 2, cy - radius, unit * 4, radius * 2, shadeColor(palette[5], -0.22), unit);
@@ -818,7 +1068,15 @@ function drawUiIcon(ctx, rng, palette, size, options, frame) {
   fillPixelRect(ctx, pad + unit * 2, size - pad - unit * 5, size - pad * 2 - unit * 4, unit * 3, shade, unit);
   ctx.clearRect(pad + unit * 5, pad + unit * 6, size - pad * 2 - unit * 10, size - pad * 2 - unit * 12);
 
-  if (options.profile.shape === "heart") {
+  if (options.profile.shape === "skull") {
+    drawSkullSymbol(ctx, size / 2, size * 0.51, unit, palette[5], dark);
+    drawPixelLine(ctx, size * 0.34, size * 0.68, size * 0.66, size * 0.32, shadeColor(palette[4], 0.1), unit);
+    drawPixelLine(ctx, size * 0.34, size * 0.32, size * 0.66, size * 0.68, shadeColor(palette[4], 0.1), unit);
+  } else if (options.profile.shape === "star") {
+    if (options.profile.details.includes("mana")) drawDiamond(ctx, size / 2, size / 2, size * 0.22, shadeColor(palette[1], 0.22), unit);
+    drawStarSymbol(ctx, size / 2, size / 2, unit, options.profile.details.includes("mana") ? palette[1] : accent, dark);
+    drawSparkle(ctx, size * 0.65, size * 0.34, light, unit);
+  } else if (options.profile.shape === "heart") {
     drawHeart(ctx, Math.floor(size * 0.35), Math.floor(size * 0.34), unit * 2, dark);
     drawHeart(ctx, Math.floor(size * 0.37), Math.floor(size * 0.34), unit * 2, palette[4]);
     setPixel(ctx, size * 0.47, size * 0.4, shadeColor(palette[4], 0.45), unit * 2);

@@ -2,7 +2,8 @@
 
 本目录保存项目演示材料。
 
-- [`demo.webm`](./demo.webm)：可直接播放的无声演示视频，展示在线预览、代表性素材、动作帧、语义解析和导出能力。
+- [`index.html`](./index.html)：Demo 展示页，包含视频播放器、在线工具入口和讲解脚本入口。
+- [`demo.webm`](./demo.webm)：可直接播放的无声演示视频，展示在线预览、代表性素材、动作帧、一键素材包、解析完整度和导出能力。
 - [`record.html`](./record.html)：使用浏览器 Canvas 和 MediaRecorder 生成演示视频的可复现录制页。
 - [`../docs/DEMO_SCRIPT.md`](../docs/DEMO_SCRIPT.md)：正式讲解版视频的录制脚本。
 

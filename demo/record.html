@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pixel Asset Forge Demo Recorder</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        color: #fff;
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      #output {
+        position: fixed;
+        inset: auto 0 0;
+        max-height: 40vh;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage" width="1280" height="720"></canvas>
+    <pre id="output">recording</pre>
+    <script>
+      const slides = [
+        {
+          image: "../docs/assets/preview-main.png",
+          title: "Pixel Asset Forge",
+          subtitle: "文本驱动的 2D 游戏像素素材生成工具",
+          note: "在线预览、零依赖运行、可导出 PNG / 精灵表 / JSON",
+        },
+        {
+          image: "../docs/assets/example-hero.png",
+          title: "角色与动作帧",
+          subtitle: "提示词解析为职业、颜色、装备和动作",
+          note: "示例：royal crystal knight with tiny crown and blue cape",
+        },
+        {
+          image: "../docs/assets/example-skull-key.png",
+          title: "道具主体与语义装饰",
+          subtitle: "主体优先级避免组合词丢失核心物体",
+          note: "示例：emerald skull key with green glow",
+        },
+        {
+          image: "../docs/assets/example-slime.png",
+          title: "非人形敌方单位",
+          subtitle: "支持 slime / ghost / bat / dragon 等游戏常见轮廓",
+          note: "示例：green slime enemy with tiny crown",
+        },
+      ];
+
+      const canvas = document.querySelector("#stage");
+      const ctx = canvas.getContext("2d");
+      const output = document.querySelector("#output");
+
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = src;
+        });
+      }
+
+      function roundedRect(x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+      }
+
+      function drawSlide(slide, image, progress) {
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.fillStyle = "#eaf1f7";
+        ctx.fillRect(0, 0, width, height);
+
+        const imageW = 760;
+        const imageH = 528;
+        const imageX = 468;
+        const imageY = 96;
+        ctx.save();
+        roundedRect(imageX - 12, imageY - 12, imageW + 24, imageH + 24, 18);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.clip();
+        ctx.drawImage(image, imageX, imageY, imageW, imageH);
+        ctx.restore();
+
+        ctx.fillStyle = "#101827";
+        ctx.font = "700 54px Segoe UI, Microsoft YaHei, sans-serif";
+        ctx.fillText(slide.title, 58, 128);
+
+        ctx.fillStyle = "#2563eb";
+        ctx.font = "700 28px Segoe UI, Microsoft YaHei, sans-serif";
+        ctx.fillText(slide.subtitle, 62, 184);
+
+        ctx.fillStyle = "#334155";
+        ctx.font = "24px Segoe UI, Microsoft YaHei, sans-serif";
+        const words = slide.note.split(" ");
+        let line = "";
+        let y = 244;
+        words.forEach((word) => {
+          const next = line ? `${line} ${word}` : word;
+          if (ctx.measureText(next).width > 340) {
+            ctx.fillText(line, 62, y);
+            line = word;
+            y += 34;
+          } else {
+            line = next;
+          }
+        });
+        if (line) ctx.fillText(line, 62, y);
+
+        const bullets = ["文本提示词", "程序化像素画", "动作帧与变体", "工具链元数据"];
+        bullets.forEach((text, index) => {
+          const itemY = 390 + index * 48;
+          ctx.fillStyle = "#15936b";
+          roundedRect(62, itemY - 24, 28, 28, 8);
+          ctx.fill();
+          ctx.fillStyle = "#0f172a";
+          ctx.font = "700 24px Segoe UI, Microsoft YaHei, sans-serif";
+          ctx.fillText(text, 108, itemY);
+        });
+
+        ctx.fillStyle = "#cbd5e1";
+        roundedRect(58, 652, 1164, 10, 5);
+        ctx.fill();
+        ctx.fillStyle = "#2563eb";
+        roundedRect(58, 652, 1164 * progress, 10, 5);
+        ctx.fill();
+      }
+
+      async function main() {
+        const images = await Promise.all(slides.map((slide) => loadImage(slide.image)));
+        const stream = canvas.captureStream(24);
+        const chunks = [];
+        const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8" });
+        recorder.ondataavailable = (event) => {
+          if (event.data.size) chunks.push(event.data);
+        };
+        recorder.start();
+
+        const framesPerSlide = 72;
+        for (let slideIndex = 0; slideIndex < slides.length; slideIndex += 1) {
+          for (let frame = 0; frame < framesPerSlide; frame += 1) {
+            const progress = (slideIndex + frame / framesPerSlide) / slides.length;
+            drawSlide(slides[slideIndex], images[slideIndex], progress);
+            await wait(1000 / 24);
+          }
+        }
+        drawSlide(slides[slides.length - 1], images[images.length - 1], 1);
+        await wait(240);
+        recorder.stop();
+        await new Promise((resolve) => {
+          recorder.onstop = resolve;
+        });
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        let binary = "";
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        output.textContent = `WEBM_BASE64:${btoa(binary)}`;
+      }
+
+      main().catch((error) => {
+        output.textContent = `ERROR:${error.message}`;
+      });
+    </script>
+  </body>
+</html>

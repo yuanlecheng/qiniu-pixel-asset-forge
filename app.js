@@ -48,6 +48,61 @@ const palettes = {
   },
 };
 
+const demoScenarios = {
+  hero: {
+    prompt: "royal crystal knight with tiny crown and blue cape",
+    assetType: "character",
+    actionMode: "attack",
+    stylePreset: "fantasy",
+    size: 64,
+    variance: 6,
+  },
+  enemy: {
+    prompt: "poison green slime enemy with skull mark for forest level",
+    assetType: "character",
+    actionMode: "hit",
+    stylePreset: "forest",
+    size: 64,
+    variance: 6,
+  },
+  weapon: {
+    prompt: "lava crystal axe covered in golden runes",
+    assetType: "item",
+    actionMode: "attack",
+    stylePreset: "fantasy",
+    size: 64,
+    variance: 6,
+  },
+  tile: {
+    prompt: "icy cracked cave floor tile with blue crystals",
+    assetType: "tile",
+    actionMode: "idle",
+    stylePreset: "sciFi",
+    size: 64,
+    variance: 5,
+  },
+  ui: {
+    prompt: "blue mana star spell ui icon with glow",
+    assetType: "ui",
+    actionMode: "idle",
+    stylePreset: "arcade",
+    size: 64,
+    variance: 6,
+  },
+};
+
+const starterPackBlueprints = [
+  { prompt: "royal crystal knight with blue cape", assetType: "character", actionMode: "idle", stylePreset: "fantasy" },
+  { prompt: "green slime enemy with tiny crown", assetType: "character", actionMode: "hit", stylePreset: "forest" },
+  { prompt: "floating blue ghost holding lantern", assetType: "character", actionMode: "idle", stylePreset: "cozy" },
+  { prompt: "lava crystal axe covered in runes", assetType: "item", actionMode: "attack", stylePreset: "fantasy" },
+  { prompt: "emerald skull key with green glow", assetType: "item", actionMode: "idle", stylePreset: "arcade" },
+  { prompt: "icy cracked cave floor tile with blue crystals", assetType: "tile", actionMode: "idle", stylePreset: "sciFi" },
+  { prompt: "wooden tavern floor tile with moss edges", assetType: "tile", actionMode: "idle", stylePreset: "forest" },
+  { prompt: "blue mana star spell ui icon with glow", assetType: "ui", actionMode: "idle", stylePreset: "arcade" },
+  { prompt: "danger skull ui icon with red warning mark", assetType: "ui", actionMode: "idle", stylePreset: "fantasy" },
+];
+
 const typeNames = {
   character: "角色",
   item: "道具",
@@ -1244,6 +1299,34 @@ function makeMetadata(options, seed, palette) {
   };
 }
 
+function makeQualityReport(options) {
+  const tagCount = options.profile.tags.filter((tag) => tag !== "custom").length;
+  const detailCount = options.profile.details.length;
+  const shapeHit = options.profile.shape !== "default";
+  const targetCount = options.targets.length;
+  const promptDepth = Math.min(18, Math.floor(options.prompt.trim().split(/\s+/).length * 2.4));
+  const semanticScore = Math.min(38, tagCount * 8 + detailCount * 5 + (shapeHit ? 10 : 0));
+  const workflowScore = targetCount * 5 + (options.outline ? 4 : 0) + (options.shadow ? 3 : 0);
+  const score = Math.max(58, Math.min(98, 42 + semanticScore + workflowScore + promptDepth));
+  const signals = [];
+
+  if (shapeHit) signals.push(`主体 ${options.profile.shape}`);
+  if (tagCount) signals.push(`标签 ${options.profile.tags.slice(0, 5).join(", ")}`);
+  if (detailCount) signals.push(`细节 ${options.profile.details.slice(0, 4).join(", ")}`);
+  signals.push(`${targetCount || 0} 个导出目标`);
+
+  return {
+    score,
+    summary: signals.join(" / "),
+    ready: {
+      png: options.assetType !== "tile",
+      frames: options.assetType !== "tile" || options.size >= 32,
+      seed: true,
+      metadata: targetCount > 0,
+    },
+  };
+}
+
 function makeLibraryManifest() {
   return {
     project: "Pixel Asset Forge",
@@ -1337,16 +1420,25 @@ function renderAll() {
   motionCanvases.forEach((canvas, index) => drawAssetToCanvas(canvas, options, state.seedOffset, index));
 
   const metadata = makeMetadata(options, result.seed, result.palette);
+  const quality = makeQualityReport(options);
+  metadata.qualityScore = quality.score;
+  metadata.semanticSummary = quality.summary;
   state.lastMeta = metadata;
   $("#assetName").textContent = metadata.name;
   $("#assetSize").textContent = metadata.size.replace("x", " x ");
   $("#assetStyle").textContent = metadata.style;
   $("#importHint").textContent = metadata.importSettings.filterMode + " / " + metadata.importSettings.compression;
+  $("#matchScore").textContent = `${quality.score}%`;
+  $("#semanticSummary").textContent = quality.summary;
   $("#metadataOutput").textContent = JSON.stringify(metadata, null, 2);
   $("#statusText").textContent = "已生成";
   $("#frameLabel").textContent = `${metadata.action} / 4 frames`;
   $("#workflowText").textContent = metadata.importSettings.workflow.join("；") || "请选择至少一个导出目标";
   $("#promptTags").textContent = metadata.promptTags.join(", ");
+  $("#qualityPng").classList.toggle("ready", quality.ready.png);
+  $("#qualityFrames").classList.toggle("ready", quality.ready.frames);
+  $("#qualitySeed").classList.toggle("ready", quality.ready.seed);
+  $("#qualityMeta").classList.toggle("ready", quality.ready.metadata);
 }
 
 function downloadCanvas(canvas, filename) {
@@ -1443,6 +1535,96 @@ async function copyMetadata() {
   }
 }
 
+function applyScenario(scenarioKey) {
+  if (scenarioKey === "pack") {
+    generateStarterPack();
+    return;
+  }
+
+  const scenario = demoScenarios[scenarioKey];
+  if (!scenario) return;
+  controls.prompt.value = scenario.prompt;
+  controls.assetType.value = scenario.assetType;
+  controls.actionMode.value = scenario.actionMode;
+  controls.stylePreset.value = scenario.stylePreset;
+  controls.size.value = scenario.size;
+  controls.variance.value = scenario.variance;
+  state.seedOffset = 0;
+  syncPaletteInputs();
+  renderAll();
+  $("#statusText").textContent = "演示案例已载入";
+}
+
+function makeOptionsFromBlueprint(blueprint) {
+  const targets = [];
+  if (controls.targetUnity.checked) targets.push("Unity");
+  if (controls.targetGodot.checked) targets.push("Godot");
+  if (controls.targetAseprite.checked) targets.push("Aseprite");
+
+  const stylePreset = blueprint.stylePreset || controls.stylePreset.value;
+  const assetType = blueprint.assetType || "character";
+  const prompt = blueprint.prompt;
+  const size = Number(blueprint.size || controls.size.value || 64);
+  const variance = Number(blueprint.variance || 6);
+
+  return {
+    prompt,
+    assetType,
+    actionMode: blueprint.actionMode || "idle",
+    stylePreset,
+    size,
+    variance,
+    outline: true,
+    shadow: true,
+    paletteLocked: false,
+    palette: [...palettes[stylePreset].colors],
+    targets,
+    profile: analyzePrompt(prompt, assetType),
+  };
+}
+
+function makeAssetRecordFromOptions(options, seedOffset, index) {
+  const canvas = document.createElement("canvas");
+  const result = drawAssetToCanvas(canvas, options, seedOffset, 0);
+  const meta = makeMetadata(options, result.seed, result.palette);
+  const quality = makeQualityReport(options);
+  meta.qualityScore = quality.score;
+  meta.semanticSummary = quality.summary;
+  return {
+    id: `pack_${Date.now().toString(36)}_${index}`,
+    preview: canvas.toDataURL("image/png"),
+    meta,
+  };
+}
+
+function generateStarterPack() {
+  const generatedAssets = starterPackBlueprints.map((blueprint, index) => {
+    const options = makeOptionsFromBlueprint(blueprint);
+    return makeAssetRecordFromOptions(options, index * 19, index + 1);
+  });
+  const knownSeeds = new Set();
+  state.library = [...generatedAssets, ...state.library]
+    .filter((asset) => {
+      if (knownSeeds.has(asset.meta.seed)) return false;
+      knownSeeds.add(asset.meta.seed);
+      return true;
+    })
+    .slice(0, 12);
+
+  const focus = demoScenarios.hero;
+  controls.prompt.value = focus.prompt;
+  controls.assetType.value = focus.assetType;
+  controls.actionMode.value = focus.actionMode;
+  controls.stylePreset.value = focus.stylePreset;
+  controls.size.value = focus.size;
+  controls.variance.value = focus.variance;
+  state.seedOffset = 0;
+  syncPaletteInputs();
+  renderAll();
+  renderLibrary();
+  $("#statusText").textContent = `已生成 ${generatedAssets.length} 个项目素材`;
+}
+
 $("#generateBtn").addEventListener("click", renderAll);
 $("#randomBtn").addEventListener("click", () => {
   state.seedOffset += 13;
@@ -1455,6 +1637,10 @@ $("#copyMetaBtn").addEventListener("click", copyMetadata);
 $("#saveLibraryBtn").addEventListener("click", saveCurrentAsset);
 $("#downloadLibraryBtn").addEventListener("click", exportLibraryManifest);
 $("#clearLibraryBtn").addEventListener("click", clearLibrary);
+$("#generatePackBtn").addEventListener("click", generateStarterPack);
+document.querySelectorAll("[data-demo]").forEach((button) => {
+  button.addEventListener("click", () => applyScenario(button.dataset.demo));
+});
 controls.stylePreset.addEventListener("change", () => {
   syncPaletteInputs();
   renderAll();

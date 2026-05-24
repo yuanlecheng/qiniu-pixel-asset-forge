@@ -149,6 +149,41 @@ figcaption,
   padding: 0;
 }
 
+.demo-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(21, 147, 107, 0.06));
+  padding: 12px;
+}
+
+.mini-section-head {
+  display: grid;
+  gap: 3px;
+}
+
+.mini-section-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mini-section-head strong {
+  font-size: 13px;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.demo-grid button {
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
 textarea,
 select {
   width: 100%;
@@ -233,6 +268,13 @@ input[type="color"] {
 
 .button-grid {
   grid-template-columns: repeat(3, 1fr);
+}
+
+.secondary-action {
+  border-color: rgba(21, 147, 107, 0.36);
+  background: rgba(21, 147, 107, 0.1);
+  color: #0f7354;
+  font-weight: 700;
 }
 
 .workbench {
@@ -326,6 +368,17 @@ dd {
   overflow-wrap: anywhere;
 }
 
+.score-badge {
+  display: inline-grid;
+  min-width: 72px;
+  border-radius: 999px;
+  background: #102033;
+  color: #fff;
+  padding: 6px 10px;
+  text-align: center;
+  font-weight: 800;
+}
+
 .quality-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -342,6 +395,13 @@ dd {
   padding: 8px;
   font-size: 12px;
   text-align: center;
+}
+
+.quality-grid span.ready {
+  border-color: rgba(21, 147, 107, 0.26);
+  background: rgba(21, 147, 107, 0.1);
+  color: #0f7354;
+  font-weight: 700;
 }
 
 .strip-section {
@@ -522,6 +582,18 @@ pre {
 }
 
 @media (max-width: 620px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .app-shell,
+  .control-panel,
+  .workbench {
+    min-width: 0;
+    width: 100%;
+  }
+
   .grid-two,
   .button-row,
   .button-grid,
@@ -543,5 +615,13 @@ pre {
 
   .palette-editor {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .chip-row label {
+    flex: 1 1 100%;
+  }
+
+  .demo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

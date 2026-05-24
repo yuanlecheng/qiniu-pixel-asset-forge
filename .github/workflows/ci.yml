@@ -27,3 +27,14 @@ jobs:
           test -f README.md
           test -f LICENSE
           test -f docs/REPRODUCIBILITY.md
+          test -f docs/DEMO_SCRIPT.md
+          test -f demo/demo.webm
+          test -f docs/assets/preview-main.png
+
+      - name: Check key UI hooks
+        run: |
+          grep -q 'id="mainCanvas"' index.html
+          grep -q 'id="generatePackBtn"' index.html
+          grep -q 'id="matchScore"' index.html
+          grep -q 'function generateStarterPack' app.js
+          grep -q 'function makeQualityReport' app.js

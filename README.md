@@ -1,5 +1,25 @@
 # Pixel Asset Forge
 
+> 浏览器端 2D 像素游戏素材生成工具：输入文本描述，生成角色、敌人、道具、地图地块和 UI 图标，并导出 PNG、4 帧精灵表与可复现 JSON 元数据。
+
+[在线预览](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/) · [Demo 视频](./demo/demo.webm) · [复现文档](./docs/REPRODUCIBILITY.md) · [提交自检](./SUBMISSION_CHECKLIST.md)
+
+![Pixel Asset Forge 在线预览](./docs/assets/preview-main.png)
+
+## 项目亮点
+
+- **文本驱动生成**：解析主体、颜色、材质、环境、动作和特效，生成可用于 2D 游戏原型的像素素材。
+- **多类型素材覆盖**：支持角色、道具、地图 tile 和 UI 图标，并提供动作帧与同提示词变体。
+- **一键素材包**：内置代表性演示案例，可快速生成一组角色、敌人、道具、地块和 UI 候选素材。
+- **可复现工作流**：同一提示词、类型、风格和 seed 可复现相同结果，导出元数据包含调色板、帧信息和引擎导入建议。
+- **开源零依赖**：原生 HTML / CSS / JavaScript + Canvas API 实现，无后端、无 npm 安装步骤，克隆后即可运行。
+
+## 示例效果
+
+| 英雄角色 | 骷髅钥匙 | 敌方单位 |
+| --- | --- | --- |
+| ![英雄角色](./docs/assets/example-hero.png) | ![骷髅钥匙](./docs/assets/example-skull-key.png) | ![敌方单位](./docs/assets/example-slime.png) |
+
 Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过文本描述和少量参数生成角色、道具、地块与 UI 图标，面向 Game Jam、独立游戏原型、课程项目和轻量级 2D 游戏开发场景。
 
 项目采用原生 HTML、CSS、JavaScript 和 Canvas API 实现，不依赖后端服务或构建工具。克隆仓库后即可运行，生成结果可导出为 PNG、四帧精灵表和 JSON 元数据，便于接入 Unity、Godot、Aseprite 等常见 2D 游戏开发流程。
@@ -45,7 +65,7 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 
 页面内置代表性演示案例，覆盖英雄角色、敌方单位、装备道具、地图地块、技能图标和完整素材包。评审或开发者可以直接点击案例按钮查看高质量样例，也可以使用“一键生成项目素材包”快速生成一组角色、敌人、道具、地块和 UI 图标候选素材。
 
-生成结果会显示语义匹配评分和生成依据摘要，帮助判断提示词是否被正确解析。素材包中的每个条目仍然保留确定性 seed、提示词标签、调色板、导入建议和可复现元数据。
+生成结果会显示解析完整度和生成依据摘要，帮助判断提示词是否被正确解析。该分数基于命中的主体、颜色、材质、细节和导出配置计算，用于说明规则解析覆盖程度，而不是外部模型评分。素材包中的每个条目仍然保留确定性 seed、提示词标签、调色板、导入建议和可复现元数据。
 
 ### 项目素材库
 
@@ -223,7 +243,9 @@ Pixel Asset Forge 当前版本以 Canvas 程序化生成作为 MVP 基线，优�
 
 ## Demo
 
-Demo 视频将在功能定型后补充。
+可播放演示视频：[`demo/demo.webm`](./demo/demo.webm)。线上访问地址：`https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/demo.webm`。
+
+正式讲解版录制脚本见 [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md)。视频建议上传至 bilibili、网盘或其他公开平台后，将外部链接补充到本节；当前仓库内置 WebM 版本可直接通过 GitHub 或 GitHub Pages 访问。
 
 ## License
 

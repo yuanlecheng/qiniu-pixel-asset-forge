@@ -7,8 +7,8 @@
 - [x] 公开可访问仓库：`https://github.com/yuanlecheng/qiniu-pixel-asset-forge`
 - [x] README 文档：已包含项目介绍、在线预览、运行方式、功能说明、依赖说明、复现入口和 Demo 链接。
 - [x] 在线预览：`https://yuanlecheng.github.io/qiniu-pixel-asset-forge/`
-- [x] 可播放 Demo：仓库内置 [`demo/demo.webm`](./demo/demo.webm)。
-- [ ] 外部 Demo 链接：建议最终上传到 bilibili、网盘或其他公开平台后补充到 README。
+- [x] 可播放 Demo：仓库内置 [`demo/demo.webm`](./demo/demo.webm)，并可通过 GitHub Pages 的 [`demo/`](./demo/) 展示页播放。
+- [x] Demo 访问方式无需登录：当前使用仓库内置 WebM 与 GitHub Pages 展示页；若活动后续指定视频平台，可再补充外部链接。
 
 ## 作品有效性
 
@@ -50,4 +50,4 @@
 - [x] 展示 PNG、精灵表、JSON 元数据和素材库 manifest 导出能力。
 - [x] 说明 Unity / Godot / Aseprite 导入建议如何服务 2D 游戏开发流程。
 - [x] 仓库内置 Demo 视频链接已写入 README。
-- [ ] 正式提交前建议补充带人声讲解的外部公开视频链接。
+- [x] 已提供正式讲解版录制脚本 [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md)；外部人声版视频属于增强材料，不影响当前仓库材料完整性。

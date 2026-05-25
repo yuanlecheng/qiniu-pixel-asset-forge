@@ -263,6 +263,23 @@ function applyQueryParams() {
 
   if (params.get("outline") === "0") controls.outline.checked = false;
   if (params.get("shadow") === "0") controls.shadow.checked = false;
+  if (params.get("paletteLock") === "1") controls.paletteLock.checked = true;
+
+  const seedOffset = Number(params.get("seedOffset"));
+  if (Number.isFinite(seedOffset)) state.seedOffset = seedOffset;
+
+  const targetParam = params.get("targets");
+  if (targetParam) {
+    const targets = targetParam.split(",").map((target) => target.trim().toLowerCase());
+    controls.targetUnity.checked = targets.includes("unity");
+    controls.targetGodot.checked = targets.includes("godot");
+    controls.targetAseprite.checked = targets.includes("aseprite");
+  }
+
+  controls.colors.forEach((input, index) => {
+    const color = params.get(`c${index}`);
+    if (/^#[0-9a-f]{6}$/i.test(color || "")) input.value = color;
+  });
 }
 
 function readOptions() {
@@ -1266,7 +1283,27 @@ function makeWorkflowTargets(options) {
   return settings;
 }
 
-function makeMetadata(options, seed, palette) {
+function buildReproducibleUrl(options, seedOffset = state.seedOffset) {
+  const params = new URLSearchParams();
+  params.set("prompt", options.prompt);
+  params.set("type", options.assetType);
+  params.set("action", options.actionMode);
+  params.set("style", options.stylePreset);
+  params.set("size", String(options.size));
+  params.set("variance", String(options.variance));
+  params.set("seedOffset", String(seedOffset));
+  if (!options.outline) params.set("outline", "0");
+  if (!options.shadow) params.set("shadow", "0");
+  if (options.paletteLocked) {
+    params.set("paletteLock", "1");
+    options.palette.forEach((color, index) => params.set(`c${index}`, color));
+  }
+  params.set("targets", options.targets.length ? options.targets.join(",") : "none");
+  const base = `${window.location.origin}${window.location.pathname}`;
+  return `${base}?${params.toString()}`;
+}
+
+function makeMetadata(options, seed, palette, seedOffset = state.seedOffset) {
   const name = `${slugify(options.prompt)}_${options.assetType}`;
   return {
     name,
@@ -1278,7 +1315,9 @@ function makeMetadata(options, seed, palette) {
     style: palettes[options.stylePreset].label,
     size: `${options.size}x${options.size}`,
     seed,
+    seedOffset,
     palette,
+    reproducibleUrl: buildReproducibleUrl(options, seedOffset),
     frames: 4,
     frameDurationMs: 100,
     transparentBackground: options.assetType !== "tile",
@@ -1341,9 +1380,11 @@ function makeLibraryManifest() {
       style: asset.meta.style,
       size: asset.meta.size,
       seed: asset.meta.seed,
+      seedOffset: asset.meta.seedOffset,
       prompt: asset.meta.prompt,
       promptTags: asset.meta.promptTags,
       palette: asset.meta.palette,
+      reproducibleUrl: asset.meta.reproducibleUrl,
       suggestedFilename: `${asset.meta.name}.png`,
       importSettings: asset.meta.importSettings,
     })),
@@ -1419,7 +1460,7 @@ function renderAll() {
   variantCanvases.forEach((canvas, index) => drawAssetToCanvas(canvas, options, state.seedOffset + index + 1, index));
   motionCanvases.forEach((canvas, index) => drawAssetToCanvas(canvas, options, state.seedOffset, index));
 
-  const metadata = makeMetadata(options, result.seed, result.palette);
+  const metadata = makeMetadata(options, result.seed, result.palette, state.seedOffset);
   const quality = makeQualityReport(options);
   metadata.qualityScore = quality.score;
   metadata.semanticSummary = quality.summary;
@@ -1525,13 +1566,41 @@ function clearLibrary() {
   $("#statusText").textContent = "素材库已清空";
 }
 
-async function copyMetadata() {
-  const text = JSON.stringify(state.lastMeta, null, 2);
+async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
-    $("#statusText").textContent = "元数据已复制";
+    return true;
   } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.append(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    return copied;
+  }
+}
+
+async function copyMetadata() {
+  const text = JSON.stringify(state.lastMeta, null, 2);
+  if (await copyText(text)) {
+    $("#statusText").textContent = "元数据已复制";
+  } else {
     $("#statusText").textContent = "请手动复制";
+  }
+}
+
+async function copyReproducibleLink() {
+  const options = readOptions();
+  const url = buildReproducibleUrl(options);
+  if (await copyText(url)) {
+    $("#statusText").textContent = "复现链接已复制";
+  } else {
+    $("#metadataOutput").textContent = url;
+    $("#statusText").textContent = "请手动复制链接";
   }
 }
 
@@ -1586,7 +1655,7 @@ function makeOptionsFromBlueprint(blueprint) {
 function makeAssetRecordFromOptions(options, seedOffset, index) {
   const canvas = document.createElement("canvas");
   const result = drawAssetToCanvas(canvas, options, seedOffset, 0);
-  const meta = makeMetadata(options, result.seed, result.palette);
+  const meta = makeMetadata(options, result.seed, result.palette, seedOffset);
   const quality = makeQualityReport(options);
   meta.qualityScore = quality.score;
   meta.semanticSummary = quality.summary;
@@ -1634,6 +1703,7 @@ $("#downloadPngBtn").addEventListener("click", () => downloadCanvas(mainCanvas, 
 $("#downloadSheetBtn").addEventListener("click", downloadSpriteSheet);
 $("#downloadMetaBtn").addEventListener("click", exportMetadata);
 $("#copyMetaBtn").addEventListener("click", copyMetadata);
+$("#copyLinkBtn").addEventListener("click", copyReproducibleLink);
 $("#saveLibraryBtn").addEventListener("click", saveCurrentAsset);
 $("#downloadLibraryBtn").addEventListener("click", exportLibraryManifest);
 $("#clearLibraryBtn").addEventListener("click", clearLibrary);

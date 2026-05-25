@@ -19,6 +19,9 @@ jobs:
       - name: Check JavaScript syntax
         run: node --check app.js
 
+      - name: Run project integrity check
+        run: node scripts/project-check.mjs
+
       - name: Check required project files
         run: |
           test -f index.html

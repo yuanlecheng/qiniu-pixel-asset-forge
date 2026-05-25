@@ -267,7 +267,7 @@ input[type="color"] {
 }
 
 .button-grid {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .secondary-action {
@@ -279,8 +279,10 @@ input[type="color"] {
 
 .workbench {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(320px, 1fr) auto auto auto;
   gap: 16px;
+  min-width: 0;
   overflow: hidden;
   padding: 18px;
 }
@@ -309,12 +311,14 @@ input[type="color"] {
   display: grid;
   grid-template-columns: minmax(290px, 1fr) minmax(230px, 310px);
   gap: 16px;
+  min-width: 0;
   min-height: 0;
 }
 
 .preview-stage {
   display: grid;
   place-items: center;
+  min-width: 0;
   min-height: 380px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -334,7 +338,8 @@ input[type="color"] {
 
 #mainCanvas {
   width: min(69vmin, 530px);
-  height: min(69vmin, 530px);
+  height: auto;
+  aspect-ratio: 1;
   max-width: 100%;
   image-rendering: pixelated;
 }
@@ -407,6 +412,7 @@ dd {
 .strip-section {
   display: grid;
   gap: 12px;
+  min-width: 0;
   padding: 14px;
 }
 
@@ -414,6 +420,7 @@ dd {
   display: grid;
   grid-template-columns: repeat(4, minmax(82px, 1fr));
   gap: 12px;
+  min-width: 0;
 }
 
 .canvas-strip figure {
@@ -597,10 +604,13 @@ pre {
   .grid-two,
   .button-row,
   .button-grid,
-  .canvas-strip,
   .workflow-panel,
   .library-grid {
     grid-template-columns: 1fr;
+  }
+
+  .canvas-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .topbar,
@@ -611,6 +621,10 @@ pre {
 
   .preview-stage {
     min-height: 284px;
+  }
+
+  #mainCanvas {
+    width: min(100%, 284px);
   }
 
   .palette-editor {

@@ -2,7 +2,7 @@
 
 > 浏览器端 2D 像素游戏素材生成工具：输入文本描述，生成角色、敌人、道具、地图地块和 UI 图标，并导出 PNG、4 帧精灵表与可复现 JSON 元数据。
 
-[在线预览](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/) · [Demo 展示页](./demo/) · [复现文档](./docs/REPRODUCIBILITY.md) · [提交自检](./SUBMISSION_CHECKLIST.md)
+[在线预览](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/) · [Demo 展示页](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/) · [Demo 视频](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/demo.webm) · [复现文档](./docs/REPRODUCIBILITY.md) · [提交自检](./SUBMISSION_CHECKLIST.md)
 
 ![Pixel Asset Forge 在线预览](./docs/assets/preview-main.png)
 
@@ -27,6 +27,15 @@ Pixel Asset Forge 是一个浏览器端 2D 像素素材生成工具。它通过�
 ## 在线预览
 
 [https://yuanlecheng.github.io/qiniu-pixel-asset-forge/](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/)
+
+## Demo
+
+- 可播放演示页面：[https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/](https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/)
+- 演示视频文件：[demo/demo.webm](./demo/demo.webm)
+- 讲解版录制脚本：[docs/DEMO_SCRIPT.md](./docs/DEMO_SCRIPT.md)
+- 视频生成脚本：[demo/record.html](./demo/record.html)
+
+仓库内置的 WebM 版本可直接通过 GitHub Pages 播放，不依赖额外网盘或登录权限。若后续需要提交到指定视频平台，可基于 `docs/DEMO_SCRIPT.md` 录制带人声讲解的版本。
 
 ## 功能介绍
 
@@ -114,7 +123,7 @@ http://localhost:4173/
 https://yuanlecheng.github.io/qiniu-pixel-asset-forge/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&style=fantasy&action=attack
 ```
 
-常用参数包括 `prompt`、`type`、`style`、`action`、`size`、`variance`、`outline=0` 和 `shadow=0`。
+常用参数包括 `prompt`、`type`、`style`、`action`、`size`、`variance`、`seedOffset`、`outline=0`、`shadow=0`、`paletteLock=1`、`c0` 到 `c5` 调色板颜色，以及 `targets` 导出目标。界面中的“复现链接”按钮会自动生成包含这些参数的 URL。
 
 ## 操作教程
 
@@ -183,6 +192,7 @@ https://yuanlecheng.github.io/qiniu-pixel-asset-forge/?type=item&prompt=fire%20c
 - `PNG`：导出当前主预览，适合单个角色、道具、tile 或图标。
 - `精灵表`：导出 4 帧横向 sprite sheet，适合动画原型。
 - `JSON`：导出当前素材元数据，包含 seed、调色板和导入建议。
+- `复现链接`：复制当前提示词、参数、seed 偏移、调色板和导出目标组成的 URL，便于他人打开同一生成状态。
 - `导出清单`：导出项目素材库 manifest，适合整理一组候选素材。
 
 ### 8. 导入游戏开发工具
@@ -210,12 +220,22 @@ Pixel Asset Forge 的生成逻辑是确定性的。提示词、素材类型、�
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── SUBMISSION_CHECKLIST.md
+├── scripts/
+│   └── project-check.mjs
+├── demo/
+│   ├── index.html
+│   ├── demo.webm
+│   ├── record.html
+│   └── README.md
 ├── docs/
-│   └── REPRODUCIBILITY.md
+│   ├── REPRODUCIBILITY.md
+│   ├── DEMO_SCRIPT.md
+│   └── assets/
 ├── .github/
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/
-│       └── ci.yml
+│       ├── ci.yml
+│       └── pages.yml
 └── .gitignore
 ```
 
@@ -227,9 +247,10 @@ Pixel Asset Forge 的生成逻辑是确定性的。提示词、素材类型、�
 
 ```bash
 node --check app.js
+node scripts/project-check.mjs
 ```
 
-GitHub Actions 会在 push 和 pull request 时执行同样的 JavaScript 语法检查，并确认关键项目文件存在。
+GitHub Actions 会在 push 和 pull request 时执行 JavaScript 语法检查、项目完整性检查，并确认关键项目文件存在。
 
 ## Design Notes
 
@@ -240,14 +261,6 @@ Pixel Asset Forge 当前版本以 Canvas 程序化生成作为 MVP 基线，优�
 导出的 JSON 元数据包含素材名称、类型、动作、尺寸、调色板、seed、帧数和导入建议，可作为后续接入 Unity `.meta`、Godot `.tres`、Aseprite 文件或素材包打包流程的基础。
 
 项目素材库用于收集当前会话中的候选素材。manifest 清单记录每个素材的名称、提示词、类型、动作、风格、seed、调色板和导入设置，适合提交给后续关卡编辑、引擎导入或素材包整理流程。
-
-## Demo
-
-可播放演示页面：[`demo/index.html`](./demo/index.html)。线上访问地址：`https://yuanlecheng.github.io/qiniu-pixel-asset-forge/demo/`。
-
-视频文件：[`demo/demo.webm`](./demo/demo.webm)。
-
-正式讲解版录制脚本见 [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md)。视频建议上传至 bilibili、网盘或其他公开平台后，将外部链接补充到本节；当前仓库内置 WebM 版本可直接通过 GitHub 或 GitHub Pages 访问。
 
 ## License
 

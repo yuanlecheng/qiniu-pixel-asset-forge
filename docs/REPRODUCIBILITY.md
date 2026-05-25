@@ -46,7 +46,12 @@ http://localhost:4173/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&s
 - `action`：`idle`、`run`、`attack` 或 `hit`。
 - `size`：`32`、`64` 或 `128`。
 - `variance`：变化强度。
+- `seedOffset`：当前变体偏移，用于复现“换一版”后的结果。
 - `outline=0` / `shadow=0`：关闭描边或接地阴影。
+- `paletteLock=1` 与 `c0` 到 `c5`：复现锁定调色板后的自定义颜色。
+- `targets`：导出目标，例如 `Unity,Godot,Aseprite` 或 `none`。
+
+界面中的“复现链接”按钮会将当前提示词、素材类型、风格、动作、尺寸、变化强度、seed 偏移、调色板和导出目标写入 URL。分享该 URL 后，接收者打开页面即可回到同一生成状态。
 
 ## 复现默认素材
 
@@ -68,6 +73,7 @@ http://localhost:4173/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&s
 - 4 帧动作帧。
 - 4 个风格一致变体。
 - JSON 元数据，其中包含 `seed`、`palette`、`frames`、`renderOptions.qualityPasses`、`importSettings.workflow`。
+- JSON 元数据中的 `seedOffset` 和 `reproducibleUrl` 字段。
 - 项目素材库区域，初始状态为空。
 
 ## 结果可复现机制
@@ -76,6 +82,7 @@ http://localhost:4173/?type=item&prompt=fire%20crystal%20sword%20golden%20rune&s
 
 - 同一份代码、同一组参数会得到同一结果。
 - 点击“换一版”会改变 seed 偏移，生成同风格变体。
+- 导出的 JSON 和素材库 manifest 会记录 `seedOffset` 与 `reproducibleUrl`，用于复现当前变体。
 - 锁定调色板后切换风格不会覆盖当前颜色，便于团队保持统一视觉语言。
 - 质量增强规则也由同一 seed 驱动，包括主体轮廓、高光、裂纹、藤蔓、闪光和语义符号分布。
 - 主体词优先级是确定的，并且会按素材类型区分：角色优先识别职业和装备轮廓，道具优先识别具体物品，地块优先识别主地表材质，UI 图标优先识别符号主体。
